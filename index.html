@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Thiệp cưới</title>
+  <meta name="description" content="Thiệp cưới online">
+  <meta property="og:title" content="Thiệp cưới">
+  <meta name="theme-color" content="#FBE4EA">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap&subset=vietnamese" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Màn hình mở thiệp -->
+  <div id="cover" class="cover" role="dialog" aria-modal="true" aria-labelledby="coverNames">
+    <div class="cover-inner">
+      <img id="coverSticker" class="sticker cover-sticker" alt="" hidden>
+      <p class="cover-to" id="coverTo">Thân mời bạn</p>
+      <h1 class="cover-names" id="coverNames"></h1>
+      <p class="cover-date" id="coverDate"></p>
+      <button id="openBtn" class="btn btn-primary">Mở thiệp</button>
+    </div>
+  </div>
+
+  <main id="page" class="page" aria-hidden="true">
+    <header class="hero">
+      <div class="hero-photo" id="heroPhoto">
+        <img id="heroSticker" class="sticker hero-sticker" alt="" hidden>
+      </div>
+      <div class="hero-text">
+        <p class="hero-title" id="heroTitle"></p>
+        <h1 class="names"><span id="groomName"></span><span class="amp">&amp;</span><span id="brideName"></span></h1>
+        <p class="hero-date" id="heroDate"></p>
+      </div>
+    </header>
+
+    <div class="ribbon" aria-label="Thông điệp"><div class="ribbon-track" id="marquee"></div></div>
+
+    <section class="section" id="invite">
+      <p class="invite-text" id="inviteText"></p>
+      <div class="couple" id="couple"></div>
+    </section>
+
+    <section class="section countdown-wrap">
+      <h2>Còn bao lâu nữa?</h2>
+      <div class="countdown" id="countdown"></div>
+      <a class="btn btn-ghost" id="calBtn" target="_blank" rel="noopener">Thêm vào Google Lịch</a>
+    </section>
+
+    <section class="section" id="events-section">
+      <h2>Tiệc cưới &amp; địa điểm</h2>
+      <div id="events" class="events"></div>
+    </section>
+
+    <section class="section" id="schedule-section">
+      <h2>Lịch trình trong ngày</h2>
+      <ol id="schedule" class="schedule"></ol>
+      <div id="dresscode" class="dresscode"></div>
+    </section>
+
+    <img id="dividerSticker" class="sticker divider-sticker" alt="" hidden>
+
+    <section class="section" id="story-section">
+      <h2>Chuyện của chúng mình</h2>
+      <ol id="story" class="story"></ol>
+    </section>
+
+    <section class="section" id="album-section">
+      <h2>Album ảnh</h2>
+      <div id="album" class="album"></div>
+    </section>
+
+    <section class="section" id="rsvp-section">
+      <img id="rsvpSticker" class="sticker rsvp-sticker" alt="" hidden>
+      <h2>Bạn sẽ đến chứ?</h2>
+      <p class="muted" id="rsvpDeadline"></p>
+      <form id="rsvpForm" class="form" novalidate>
+        <label>Tên của bạn<input name="name" required maxlength="100" autocomplete="name"></label>
+        <label>Số điện thoại<input name="phone" type="tel" maxlength="20" autocomplete="tel"></label>
+        <fieldset class="choice">
+          <legend>Bạn có tham dự không?</legend>
+          <label><input type="radio" name="attending" value="yes" checked> Mình sẽ đến</label>
+          <label><input type="radio" name="attending" value="no"> Tiếc quá, mình bận</label>
+        </fieldset>
+        <div class="row">
+          <label>Số người<select name="guests"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+          <label>Bạn là khách của<select name="side"><option value="groom">Nhà trai</option><option value="bride">Nhà gái</option><option value="both">Cả hai</option></select></label>
+        </div>
+        <label id="eventPickWrap">Tham dự sự kiện<select name="event" id="eventPick"></select></label>
+        <label>Lời chúc<textarea name="message" rows="3" maxlength="1000" placeholder="Gửi đôi lời đến cô dâu chú rể…"></textarea></label>
+        <button class="btn btn-primary" type="submit">Gửi xác nhận</button>
+        <p class="form-msg" id="rsvpMsg" role="status"></p>
+      </form>
+    </section>
+
+    <section class="section" id="wishes-section">
+      <h2>Sổ lưu bút</h2>
+      <div id="wishes" class="wishes"></div>
+    </section>
+
+    <section class="section" id="gift-section">
+      <h2>Hộp mừng cưới</h2>
+      <p class="muted" id="giftNote"></p>
+      <div id="gifts" class="gifts"></div>
+    </section>
+
+    <footer class="footer">
+      <img id="footerSticker" class="sticker footer-sticker" alt="" hidden>
+      <p id="thanks"></p>
+      <p class="footer-names" id="footerNames"></p>
+      <button class="btn btn-ghost" id="shareBtn" type="button">Chia sẻ thiệp</button>
+    </footer>
+  </main>
+
+  <button id="musicBtn" class="music-btn" type="button" aria-label="Bật/tắt nhạc" hidden>♪</button>
+  <audio id="bgm" loop preload="none"></audio>
+
+  <dialog id="lightbox" class="lightbox">
+    <button class="lb-close" type="button" aria-label="Đóng">×</button>
+    <button class="lb-prev" type="button" aria-label="Ảnh trước">‹</button>
+    <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+    <button class="lb-next" type="button" aria-label="Ảnh sau">›</button>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <script src="defaults.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

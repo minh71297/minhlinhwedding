@@ -1,0 +1,232 @@
+:root{
+  --blush:#FBE4EA;      /* nền ngoài */
+  --milk:#FFFDFB;       /* nền thiệp */
+  --cocoa:#5A3A2E;      /* chữ chính - màu nâu Dudu */
+  --cocoa-soft:#8C6A5B;
+  --berry:#E0657F;      /* điểm nhấn */
+  --butter:#FFDB8E;
+  --line:#F1D5DC;
+  --radius-lg:28px; --radius-sm:14px;
+  --display:"Baloo 2", "Nunito", system-ui, sans-serif;
+  --body:"Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;font-family:var(--body);color:var(--cocoa);font-size:16px;line-height:1.6;
+  background-color:var(--blush);
+  background-image:radial-gradient(circle at 12px 12px, #F6C9D4 2.5px, transparent 3px);
+  background-size:28px 28px;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0}
+h2{font-size:1.75rem;font-weight:800;text-align:center;margin-bottom:1.25rem}
+h3{font-size:1.25rem;font-weight:700}
+p{margin:0}
+.muted{color:var(--cocoa-soft);text-align:center}
+a{color:var(--berry)}
+:focus-visible{outline:3px solid var(--berry);outline-offset:3px;border-radius:8px}
+
+/* Cột thiệp: giống một tấm thiệp đặt giữa màn hình trên máy tính */
+.page{
+  max-width:480px;margin:0 auto;background:var(--milk);min-height:100vh;
+  box-shadow:0 0 0 1px var(--line), 0 30px 80px -30px rgba(90,58,46,.35);
+  overflow:hidden;
+}
+@media (min-width:560px){ .page{margin:32px auto;border-radius:36px} }
+
+/* Sticker: viền trắng dày như sticker dán – điểm nhấn chính của thiết kế */
+.sticker{
+  filter:drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+         drop-shadow(0 6px 8px rgba(90,58,46,.22));
+  object-fit:contain;pointer-events:none;
+}
+.sticker[hidden]{display:none}
+
+/* Bìa thiệp */
+.cover{
+  position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;
+  background:var(--blush);
+  background-image:radial-gradient(circle at 12px 12px, #F6C9D4 2.5px, transparent 3px);
+  background-size:28px 28px;
+  transition:opacity .6s ease, visibility .6s;
+}
+.cover-inner{
+  background:var(--milk);border-radius:36px;padding:40px 28px 32px;text-align:center;max-width:380px;width:100%;
+  box-shadow:0 30px 80px -30px rgba(90,58,46,.4);position:relative;
+}
+.cover-sticker{width:150px;height:150px;margin:-100px auto 8px}
+.cover-to{color:var(--cocoa-soft);font-weight:600}
+.cover-names{font-size:2.6rem;font-weight:800;margin:.25rem 0}
+.cover-date{font-family:var(--display);font-size:1.1rem;color:var(--berry);margin-bottom:1.5rem}
+body.opened .cover{opacity:0;visibility:hidden}
+body:not(.opened){overflow:hidden}
+
+/* Nút */
+.btn{
+  font:700 1rem/1 var(--body);border:0;cursor:pointer;border-radius:999px;padding:14px 26px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+  transition:transform .15s ease, background .15s;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--berry);color:#fff;box-shadow:0 4px 0 #B94862}
+.btn-primary:hover{background:#D5566F}
+.btn-primary[disabled]{opacity:.6;cursor:wait}
+.btn-ghost{background:transparent;color:var(--cocoa);border:2px solid var(--line)}
+.btn-ghost:hover{border-color:var(--berry)}
+.btn-small{padding:8px 14px;font-size:.9rem}
+
+/* Hero */
+.hero{position:relative;padding-bottom:28px}
+.hero-photo{
+  aspect-ratio:4/5;background:linear-gradient(160deg,#F7C6D0,#FFE3A3);
+  background-size:cover;background-position:center;
+  border-radius:0 0 50% 50% / 0 0 14% 14%;
+}
+.hero-text{text-align:center;padding:24px 20px 0}
+.hero-title{font-weight:700;color:var(--cocoa-soft)}
+.names{font-size:clamp(2.4rem,11vw,3.3rem);font-weight:800;display:flex;flex-direction:column;align-items:center;line-height:1.05;margin:.3rem 0 .5rem}
+.names .amp{font-size:.55em;color:var(--berry);font-weight:700}
+.hero-date{font-family:var(--display);font-size:1.25rem;font-weight:700;color:var(--berry)}
+.hero-photo{position:relative}
+.hero-sticker{position:absolute;width:120px;height:120px;right:14px;bottom:-46px}
+
+/* Dải chữ chạy */
+.ribbon{background:var(--cocoa);color:var(--butter);overflow:hidden;white-space:nowrap;padding:10px 0;transform:rotate(-2deg);margin:8px -10px 0}
+.ribbon-track{display:inline-flex;gap:2.5rem;padding-left:2.5rem;font-family:var(--display);font-weight:700;font-size:1.05rem;animation:marquee 28s linear infinite}
+.ribbon-track span::after{content:"♥";margin-left:2.5rem;color:var(--berry)}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+.section{padding:48px 22px;position:relative}
+.section + .section{border-top:2px dashed var(--line)}
+
+/* Lời mời & cặp đôi */
+.invite-text{text-align:center;font-size:1.05rem;max-width:34ch;margin:0 auto 2rem}
+.couple{display:grid;gap:28px}
+.person{text-align:center}
+.person-photo{
+  width:170px;aspect-ratio:1;margin:0 auto 12px;border-radius:50%;border:6px solid #fff;
+  box-shadow:0 0 0 2px var(--line);background:linear-gradient(160deg,#F7C6D0,#FFE3A3) center/cover;
+}
+.person-role{color:var(--berry);font-weight:700}
+.person h3{font-size:1.6rem}
+.person-bio{color:var(--cocoa-soft);margin:.3rem auto .6rem;max-width:30ch}
+.person-family{font-size:.95rem}
+.person .btn{margin-top:.75rem}
+
+/* Đếm ngược */
+.countdown-wrap{text-align:center;background:#FFF3F6}
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.cd-box{background:#fff;border-radius:var(--radius-sm);padding:12px 4px;box-shadow:0 0 0 2px var(--line)}
+.cd-num{font-family:var(--display);font-size:2rem;font-weight:800;line-height:1;color:var(--berry);display:block}
+.cd-label{font-size:.8rem;color:var(--cocoa-soft)}
+.cd-done{grid-column:1/-1;font-family:var(--display);font-size:1.4rem;font-weight:700}
+
+/* Sự kiện */
+.events{display:grid;gap:22px}
+.event{background:#fff;border-radius:var(--radius-lg);box-shadow:0 0 0 2px var(--line);overflow:hidden}
+.event-img{aspect-ratio:16/9;background:center/cover}
+.event-body{padding:20px}
+.event-time{font-family:var(--display);font-size:1.15rem;font-weight:700;color:var(--berry);margin:.2rem 0}
+.event-lunar{font-size:.9rem;color:var(--cocoa-soft);font-style:italic}
+.event-place{font-weight:700;margin-top:.6rem}
+.event-address{color:var(--cocoa-soft)}
+.event-map{width:100%;aspect-ratio:4/3;border:0;display:block}
+.event-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+/* Lịch trình (là trình tự thật nên dùng số thứ tự) */
+.schedule{list-style:none;padding:0;margin:0 auto;max-width:340px}
+.schedule li{display:grid;grid-template-columns:72px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.schedule time{font-family:var(--display);font-weight:800;color:var(--berry);font-size:1.15rem}
+.dresscode{text-align:center;margin-top:2rem}
+.dresscode h3{margin-bottom:.4rem}
+.swatches{display:flex;justify-content:center;gap:10px;margin-top:12px}
+.swatch{width:38px;height:38px;border-radius:50%;box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--line)}
+
+.divider-sticker{width:130px;height:130px;margin:-20px auto -30px;position:relative;z-index:1}
+
+/* Câu chuyện */
+.story{list-style:none;margin:0;padding:0 0 0 22px;border-left:3px dotted var(--berry)}
+.story li{position:relative;padding-bottom:28px}
+.story li::before{content:"";position:absolute;left:-31px;top:6px;width:15px;height:15px;border-radius:50%;background:var(--berry);box-shadow:0 0 0 4px var(--milk)}
+.story-date{font-family:var(--display);font-weight:800;color:var(--berry)}
+.story-img{border-radius:var(--radius-sm);margin-top:10px;border:5px solid #fff;box-shadow:0 0 0 2px var(--line);aspect-ratio:4/3;object-fit:cover;width:100%}
+
+/* Album */
+.album{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.album button{border:0;padding:0;cursor:zoom-in;background:var(--line);border-radius:12px;overflow:hidden;aspect-ratio:1}
+.album button:nth-child(5n+1){grid-column:span 2;aspect-ratio:16/10}
+.album img{width:100%;height:100%;object-fit:cover}
+.empty{text-align:center;color:var(--cocoa-soft);padding:24px;border:2px dashed var(--line);border-radius:var(--radius-sm)}
+
+/* Form */
+.rsvp-sticker{width:110px;height:110px;margin:-90px auto 8px}
+.form{display:grid;gap:14px;margin-top:1.25rem}
+.form label{display:grid;gap:6px;font-weight:700;font-size:.95rem}
+.form input,.form select,.form textarea{
+  font:400 1rem var(--body);color:var(--cocoa);background:#fff;border:2px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;width:100%;
+}
+.form input:focus,.form select:focus,.form textarea:focus{border-color:var(--berry);outline:none}
+.form .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:0;padding:0;margin:0;display:grid;gap:8px}
+.choice legend{font-weight:700;font-size:.95rem;margin-bottom:6px}
+.choice label{display:flex;align-items:center;gap:10px;font-weight:600;background:#fff;border:2px solid var(--line);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer}
+.choice label:has(input:checked){border-color:var(--berry);background:#FFF3F6}
+.choice input{accent-color:var(--berry);width:18px;height:18px}
+.form-msg{text-align:center;font-weight:700;min-height:1.5em}
+
+/* Lời chúc */
+.wishes{display:grid;gap:12px;max-height:420px;overflow:auto;padding:4px}
+.wish{background:#FFF8E6;border-radius:4px 18px 18px 18px;padding:14px 16px}
+.wish:nth-child(even){background:#FFF0F3;border-radius:18px 4px 18px 18px}
+.wish strong{font-family:var(--display);font-size:1.05rem}
+.wish p{white-space:pre-line;overflow-wrap:anywhere}
+
+/* Mừng cưới */
+.gifts{display:grid;gap:18px;margin-top:1.25rem}
+.gift{background:#fff;border-radius:var(--radius-lg);box-shadow:0 0 0 2px var(--line);padding:20px;text-align:center}
+.gift-qr{width:200px;height:200px;object-fit:contain;margin:12px auto;border-radius:12px;background:#fff}
+.gift-acc{font-family:var(--display);font-size:1.3rem;font-weight:800;letter-spacing:.02em}
+
+.footer{text-align:center;padding:56px 22px 72px;background:var(--cocoa);color:#FCEFE8}
+.footer-sticker{width:140px;height:140px;margin:0 auto 12px}
+.footer p{max-width:32ch;margin:0 auto}
+.footer-names{font-family:var(--display);font-size:2rem;font-weight:800;color:var(--butter);margin:1rem auto 1.5rem!important}
+.footer .btn-ghost{color:#FCEFE8;border-color:rgba(255,255,255,.3)}
+
+/* Nút nhạc */
+.music-btn{
+  position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;
+  width:52px;height:52px;border-radius:50%;border:3px solid #fff;background:var(--berry);color:#fff;font-size:1.4rem;cursor:pointer;
+  box-shadow:0 6px 16px rgba(90,58,46,.3);
+}
+.music-btn.playing{animation:spin 4s linear infinite}
+.music-btn:not(.playing){background:var(--cocoa-soft)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Xem ảnh lớn */
+.lightbox{border:0;padding:0;background:transparent;max-width:100vw;max-height:100vh;width:100vw;height:100vh}
+.lightbox::backdrop{background:rgba(40,24,18,.92)}
+.lightbox figure{margin:0;height:100%;display:grid;place-items:center;align-content:center;gap:10px;padding:56px 12px}
+.lightbox img{max-height:80vh;max-width:100%;object-fit:contain;border-radius:8px}
+.lightbox figcaption{color:#fff;text-align:center}
+.lightbox button{position:fixed;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:2rem;width:48px;height:48px;border-radius:50%;cursor:pointer;z-index:2}
+.lb-close{top:calc(14px + env(safe-area-inset-top,0px));right:14px}
+.lb-prev{left:10px;top:50%}
+.lb-next{right:10px;top:50%}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;
+  background:var(--cocoa);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;z-index:60;transition:.25s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.demo-bar{background:var(--butter);text-align:center;font-size:.85rem;padding:8px 12px;font-weight:700}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+.album .empty{grid-column:1/-1}
