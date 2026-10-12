@@ -41,9 +41,9 @@ a{color:var(--berry)}
 
 /* Sticker: viền trắng dày như sticker dán – điểm nhấn chính của thiết kế */
 .sticker{
-  filter:drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
-         drop-shadow(0 6px 8px rgba(90,58,46,.22));
-  object-fit:contain;pointer-events:none;
+  /* Huy hiệu tròn nền trắng: đẹp với cả ảnh nền trong suốt lẫn ảnh nền trắng */
+  background:#fff;border-radius:50%;padding:14px;object-fit:contain;pointer-events:none;
+  box-shadow:0 0 0 4px #fff, 0 0 0 6px var(--line), 0 10px 24px -6px rgba(90,58,46,.3);
 }
 .sticker[hidden]{display:none}
 
@@ -59,7 +59,7 @@ a{color:var(--berry)}
   background:var(--milk);border-radius:36px;padding:40px 28px 32px;text-align:center;max-width:380px;width:100%;
   box-shadow:0 30px 80px -30px rgba(90,58,46,.4);position:relative;
 }
-.cover-sticker{width:150px;height:150px;margin:-100px auto 8px}
+.cover-sticker{width:150px;height:150px;margin:-110px auto 12px}
 .cover-to{color:var(--cocoa-soft);font-weight:600}
 .cover-names{font-size:2.6rem;font-weight:800;margin:.25rem 0}
 .cover-date{font-family:var(--display);font-size:1.1rem;color:var(--berry);margin-bottom:1.5rem}
@@ -93,7 +93,8 @@ body:not(.opened){overflow:hidden}
 .names .amp{font-size:.55em;color:var(--berry);font-weight:700}
 .hero-date{font-family:var(--display);font-size:1.25rem;font-weight:700;color:var(--berry)}
 .hero-photo{position:relative}
-.hero-sticker{position:absolute;width:120px;height:120px;right:14px;bottom:-46px}
+.hero-sticker{position:absolute;width:128px;height:128px;left:50%;bottom:-64px;transform:translateX(-50%)}
+.hero-photo:has(.hero-sticker:not([hidden])) + .hero-text{padding-top:84px}
 
 /* Dải chữ chạy */
 .ribbon{background:var(--cocoa);color:var(--butter);overflow:hidden;white-space:nowrap;padding:10px 0;transform:rotate(-2deg);margin:8px -10px 0}
@@ -259,7 +260,8 @@ body:not(.opened){overflow:hidden}
   .hero-title{font-size:1.2rem}
   .names{font-size:clamp(3.2rem,4.6vw,4.8rem);margin:.5rem 0 1rem}
   .hero-date{font-size:1.7rem}
-  .hero-sticker{width:190px;height:190px;right:-60px;bottom:10%}
+  .hero-sticker{width:200px;height:200px;left:auto;right:-100px;bottom:auto;top:50%;transform:translateY(-50%)}
+  .hero-photo:has(.hero-sticker:not([hidden])) + .hero-text{padding:64px 48px 64px 120px}
   .ribbon{padding:14px 0}
   .ribbon-track{font-size:1.3rem}
 
