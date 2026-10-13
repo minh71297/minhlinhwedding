@@ -98,17 +98,18 @@
 
     // Lời mời & cặp đôi
     $("#inviteText").textContent = s.invite;
-    const person = (p, role, fam) => `
+    const person = (p, role, fam, sticker) => `
       <article class="person">
-        <div class="person-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}')"` : ""} role="img" aria-label="${esc(p.fullName)}"></div>
+        <div class="person-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}')"` : ""} role="img" aria-label="${esc(p.fullName)}">
+          ${safeUrl(sticker) ? `<img class="sticker person-sticker" src="${esc(safeUrl(sticker))}" alt="">` : ""}
+        </div>
         <p class="person-role">${role}</p>
         <h3>${esc(p.fullName)}</h3>
         ${p.bio ? `<p class="person-bio">${esc(p.bio)}</p>` : ""}
         <p class="person-family">${fam}: ${esc([p.father, p.mother].filter(Boolean).join(" & "))}</p>
         ${p.address ? `<p class="muted">${esc(p.address)}</p>` : ""}
-        ${p.phone ? `<a class="btn btn-ghost btn-small" href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}">Gọi ${esc(p.phone)}</a>` : ""}
       </article>`;
-    $("#couple").innerHTML = person(s.groom, "Chú rể", "Con ông bà") + person(s.bride, "Cô dâu", "Con ông bà");
+    $("#couple").innerHTML = person(s.groom, "Chú rể", "Con ông bà", s.decor.groomSticker) + person(s.bride, "Cô dâu", "Con ông bà", s.decor.brideSticker);
 
     // Đếm ngược + lịch
     startCountdown(wDate);
@@ -196,9 +197,63 @@
     $("#footerNames").textContent = names;
     setSticker($("#footerSticker"), s.decor.footerSticker);
 
+    // Liên hệ dạng thiệp
+    renderContacts(s);
+
+    // Sticker gắn trên đầu từng mục
+    const SECTION_STICKERS = {
+      inviteSticker: "invite", countdownSticker: "countdown-section", eventsSticker: "events-section",
+      scheduleSticker: "schedule-section", storySticker: "story-section", albumSticker: "album-section",
+      wishesSticker: "wishes-section", giftSticker: "gift-section", contactSticker: "contact-section",
+    };
+    for (const [key, id] of Object.entries(SECTION_STICKERS)) {
+      const sec = document.getElementById(id), u = safeUrl(s.decor[key]);
+      if (!sec || !u) continue;
+      const im = document.createElement("img");
+      im.className = "sticker section-sticker"; im.src = u; im.alt = ""; im.loading = "lazy";
+      const h2 = sec.querySelector(":scope > h2");
+      h2 ? sec.insertBefore(im, h2) : sec.prepend(im);
+    }
+    setSticker($("#floatSticker"), s.decor.floatSticker);
+
+    // Chữ Hỉ
+    document.body.classList.toggle("no-hi", s.decor.showHi === false);
+
     // Nhạc
     const music = safeUrl(s.music?.url);
-    if (music) { $("#bgm").src = music; $("#musicBtn").hidden = false; }
+    if (music) {
+      $("#bgm").src = music; $("#bgm").volume = 0.6; $("#musicBtn").hidden = false;
+      if (s.music.title) $("#musicBtn").title = s.music.title;
+    }
+  }
+
+  function renderContacts(s) {
+    const zaloUrl = (z) => {
+      z = String(z || "").trim(); if (!z) return "";
+      if (/^https?:\/\//i.test(z)) return safeUrl(z);
+      const digits = z.replace(/[^\d]/g, ""); return digits ? `https://zalo.me/${digits}` : "";
+    };
+    const card = (p, role) => {
+      const tel = String(p.phone || "").replace(/[^\d+]/g, "");
+      const zalo = zaloUrl(p.zalo);
+      const fb = safeUrl(p.facebook);
+      if (!tel && !zalo && !fb) return "";
+      return `<article class="contact-card">
+        <span class="hi hi-corner tl" aria-hidden="true">囍</span><span class="hi hi-corner br" aria-hidden="true">囍</span>
+        <div class="contact-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}')"` : ""}></div>
+        <p class="person-role">${role}</p>
+        <h3>${esc(p.fullName)}</h3>
+        ${p.phone ? `<p class="contact-phone">${esc(p.phone)}</p>` : ""}
+        <div class="contact-btns">
+          ${tel ? `<a class="cbtn cbtn-phone" href="tel:${esc(tel)}"><span class="cbtn-ic" aria-hidden="true">☎</span>Gọi điện</a>` : ""}
+          ${zalo ? `<a class="cbtn cbtn-zalo" href="${esc(zalo)}" target="_blank" rel="noopener"><span class="cbtn-ic" aria-hidden="true">Z</span>Zalo</a>` : ""}
+          ${fb ? `<a class="cbtn cbtn-fb" href="${esc(fb)}" target="_blank" rel="noopener"><span class="cbtn-ic" aria-hidden="true">f</span>Facebook</a>` : ""}
+        </div>
+      </article>`;
+    };
+    const html = card(s.groom, "Chú rể") + card(s.bride, "Cô dâu");
+    $("#contacts").innerHTML = html;
+    hideSection("contact-section", !html);
   }
 
   function mapEmbedSrc(raw) {
@@ -255,15 +310,22 @@
 
   // ---------- Tương tác ----------
   function bindEvents(state) {
-    const audio = $("#bgm"), mBtn = $("#musicBtn");
-    const play = () => audio.src && audio.play().then(() => mBtn.classList.add("playing")).catch(() => {});
+    const audio = $("#bgm"), mBtn = $("#musicBtn"), mLabel = mBtn.querySelector(".music-label");
+    const setUI = (on) => {
+      mBtn.classList.toggle("playing", on); mBtn.setAttribute("aria-pressed", on);
+      mLabel.textContent = on ? "Tắt nhạc" : "Bật nhạc";
+    };
+    const play = () => audio.src && audio.play().then(() => setUI(true)).catch(() => setUI(false));
+    audio.addEventListener("pause", () => setUI(false));
     $("#openBtn").onclick = () => {
       document.body.classList.add("opened");
       $("#page").removeAttribute("aria-hidden");
-      play();
+      if (state.s.music?.autoplay) play();
+      else if (audio.src) mBtn.classList.add("nudge");
     };
     mBtn.onclick = () => {
-      if (audio.paused) play(); else { audio.pause(); mBtn.classList.remove("playing"); }
+      mBtn.classList.remove("nudge");
+      if (audio.paused) play(); else audio.pause();
     };
 
     document.addEventListener("click", async (e) => {
@@ -314,11 +376,33 @@
     };
   }
 
+  function bindWishForm(state) {
+    const form = $("#wishForm"), msg = $("#wishMsg");
+    const guest = new URLSearchParams(location.search).get("to");
+    if (guest) form.name.value = guest.slice(0, 100);
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim(), message = form.message.value.trim();
+      if (!name) { msg.textContent = "Bạn nhập tên giúp mình nhé."; form.name.focus(); return; }
+      if (!message) { msg.textContent = "Bạn viết vài lời chúc nhé."; form.message.focus(); return; }
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true; msg.textContent = "Đang gửi…";
+      try {
+        if (sb) { const r = await sb.from("wishes").insert({ name, message }); if (r.error) throw r.error; }
+        state.wishes.unshift({ name, message }); renderWishes(state.wishes);
+        msg.textContent = "Cảm ơn bạn! Lời chúc đã được gửi.";
+        form.message.value = "";
+      } catch (err) {
+        console.error(err); msg.textContent = "Gửi chưa được. Kiểm tra mạng rồi thử lại giúp mình nhé.";
+      } finally { btn.disabled = false; }
+    };
+  }
+
   load()
-    .then((state) => { render(state); bindEvents(state); })
+    .then((state) => { render(state); bindEvents(state); bindWishForm(state); })
     .catch((err) => {
       console.error(err);
       const state = { s: window.WEDDING_DEFAULTS, gallery: [], wishes: [] };
-      render(state); bindEvents(state);
+      render(state); bindEvents(state); bindWishForm(state);
     });
 })();

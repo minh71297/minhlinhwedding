@@ -11,6 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap&subset=vietnamese" rel="stylesheet">
+  <!-- Chỉ tải riêng chữ 囍 để chữ Hỉ đẹp trên mọi máy -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&text=%E5%9B%8D&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,10 +20,12 @@
   <div id="cover" class="cover" role="dialog" aria-modal="true" aria-labelledby="coverNames">
     <div class="cover-inner">
       <img id="coverSticker" class="sticker cover-sticker" alt="" hidden>
+      <span class="hi cover-hi" aria-hidden="true">囍</span>
       <p class="cover-to" id="coverTo">Thân mời bạn</p>
       <h1 class="cover-names" id="coverNames"></h1>
       <p class="cover-date" id="coverDate"></p>
       <button id="openBtn" class="btn btn-primary">Mở thiệp</button>
+      <span class="hi hi-corner tl" aria-hidden="true">囍</span><span class="hi hi-corner br" aria-hidden="true">囍</span>
     </div>
   </div>
 
@@ -31,6 +35,7 @@
         <img id="heroSticker" class="sticker hero-sticker" alt="" hidden>
       </div>
       <div class="hero-text">
+        <span class="hi hero-hi" aria-hidden="true">囍</span>
         <p class="hero-title" id="heroTitle"></p>
         <h1 class="names"><span id="groomName"></span><span class="amp">&amp;</span><span id="brideName"></span></h1>
         <p class="hero-date" id="heroDate"></p>
@@ -44,7 +49,7 @@
       <div class="couple" id="couple"></div>
     </section>
 
-    <section class="section countdown-wrap">
+    <section class="section countdown-wrap" id="countdown-section">
       <h2>Còn bao lâu nữa?</h2>
       <div class="countdown" id="countdown"></div>
       <a class="btn btn-ghost" id="calBtn" target="_blank" rel="noopener">Thêm vào Google Lịch</a>
@@ -99,6 +104,13 @@
 
     <section class="section" id="wishes-section">
       <h2>Sổ lưu bút</h2>
+      <p class="muted">Không cần xác nhận tham dự, bạn vẫn có thể để lại lời chúc cho chúng mình.</p>
+      <form id="wishForm" class="form wish-form" novalidate>
+        <label>Tên của bạn<input name="name" required maxlength="100" autocomplete="name"></label>
+        <label>Lời chúc<textarea name="message" required rows="3" maxlength="1000" placeholder="Chúc hai bạn…"></textarea></label>
+        <button class="btn btn-primary" type="submit">Gửi lời chúc</button>
+        <p class="form-msg" id="wishMsg" role="status"></p>
+      </form>
       <div id="wishes" class="wishes"></div>
     </section>
     </div>
@@ -109,15 +121,24 @@
       <div id="gifts" class="gifts"></div>
     </section>
 
+    <section class="section" id="contact-section">
+      <h2>Liên hệ cô dâu chú rể</h2>
+      <div id="contacts" class="contacts"></div>
+    </section>
+
     <footer class="footer">
       <img id="footerSticker" class="sticker footer-sticker" alt="" hidden>
+      <span class="hi footer-hi" aria-hidden="true">囍</span>
       <p id="thanks"></p>
       <p class="footer-names" id="footerNames"></p>
       <button class="btn btn-ghost" id="shareBtn" type="button">Chia sẻ thiệp</button>
     </footer>
   </main>
 
-  <button id="musicBtn" class="music-btn" type="button" aria-label="Bật/tắt nhạc" hidden>♪</button>
+  <img id="floatSticker" class="sticker float-sticker" alt="" hidden>
+  <button id="musicBtn" class="music-btn" type="button" aria-pressed="false" hidden>
+    <span class="music-disc" aria-hidden="true">♪</span><span class="music-label">Bật nhạc</span>
+  </button>
   <audio id="bgm" loop preload="none"></audio>
 
   <dialog id="lightbox" class="lightbox">
