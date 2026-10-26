@@ -9,6 +9,8 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const safeUrl = (u) => (typeof u === "string" && /^(https?:\/\/|\/|data:image\/)/i.test(u.trim()) ? u.trim() : "");
   const cssUrl = (u) => safeUrl(u).replace(/['"()\\\s]/g, (ch) => encodeURIComponent(ch));
+  // Bỏ chữ "Ông"/"Bà" nếu admin đã gõ sẵn, tránh thành "Ông: Ông ..."
+  const stripTitle = (name, t) => String(name || "").trim().replace(new RegExp("^" + t + "[\\s:.]+", "i"), "");
   const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
   function merge(base, over) {
     if (!isObj(over)) return base;
@@ -77,7 +79,7 @@
     // Bìa
     const guest = new URLSearchParams(location.search).get("to");
     $("#coverTo").textContent = guest ? `Thân mời ${guest.slice(0, 60)}` : "Thân mời bạn";
-    $("#coverNames").textContent = names;
+    $("#coverNames").innerHTML = `<span>${esc(s.couple.groomName)}</span><span class="amp">&amp;</span><span>${esc(s.couple.brideName)}</span>`;
     $("#coverDate").textContent = wDate ? fmtDate(wDate) : "";
     setSticker($("#coverSticker"), s.decor.coverSticker);
 
@@ -106,7 +108,10 @@
         <p class="person-role">${role}</p>
         <h3>${esc(p.fullName)}</h3>
         ${p.bio ? `<p class="person-bio">${esc(p.bio)}</p>` : ""}
-        <p class="person-family">${fam}: ${esc([p.father, p.mother].filter(Boolean).join(" & "))}</p>
+        ${p.father || p.mother ? `<div class="person-family">
+          ${p.father ? `<p><span>Ông:</span> ${esc(stripTitle(p.father, "ông"))}</p>` : ""}
+          ${p.mother ? `<p><span>Bà:</span> ${esc(stripTitle(p.mother, "bà"))}</p>` : ""}
+        </div>` : ""}
         ${p.address ? `<p class="muted">${esc(p.address)}</p>` : ""}
       </article>`;
     $("#couple").innerHTML = person(s.groom, "Chú rể", "Con ông bà", s.decor.groomSticker) + person(s.bride, "Cô dâu", "Con ông bà", s.decor.brideSticker);
@@ -237,7 +242,21 @@
       const tel = String(p.phone || "").replace(/[^\d+]/g, "");
       const zalo = zaloUrl(p.zalo);
       const fb = safeUrl(p.facebook);
-      if (!tel && !zalo && !fb) return "";
+      const helpers = (p.helpers || []).filter((h) => h && (h.name || h.phone));
+      if (!tel && !zalo && !fb && !helpers.length) return "";
+      const helperHtml = helpers.length ? `<div class="helpers">
+          <p class="helpers-title">Người hỗ trợ ${role === "Chú rể" ? "nhà trai" : "nhà gái"}</p>
+          ${helpers.map((h) => {
+            const ht = String(h.phone || "").replace(/[^\d+]/g, ""), hz = zaloUrl(h.zalo);
+            return `<div class="helper">
+              <div class="helper-info"><strong>${esc(h.name)}</strong>${h.role ? `<span>${esc(h.role)}</span>` : ""}${h.phone ? `<span class="helper-phone">${esc(h.phone)}</span>` : ""}</div>
+              <div class="helper-btns">
+                ${ht ? `<a class="cbtn-mini cbtn-phone" href="tel:${esc(ht)}" aria-label="Gọi ${esc(h.name)}">☎</a>` : ""}
+                ${hz ? `<a class="cbtn-mini cbtn-zalo" href="${esc(hz)}" target="_blank" rel="noopener" aria-label="Zalo ${esc(h.name)}">Z</a>` : ""}
+              </div>
+            </div>`;
+          }).join("")}
+        </div>` : "";
       return `<article class="contact-card">
         <span class="hi hi-corner tl" aria-hidden="true">囍</span><span class="hi hi-corner br" aria-hidden="true">囍</span>
         <div class="contact-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}')"` : ""}></div>
@@ -249,6 +268,7 @@
           ${zalo ? `<a class="cbtn cbtn-zalo" href="${esc(zalo)}" target="_blank" rel="noopener"><span class="cbtn-ic" aria-hidden="true">Z</span>Zalo</a>` : ""}
           ${fb ? `<a class="cbtn cbtn-fb" href="${esc(fb)}" target="_blank" rel="noopener"><span class="cbtn-ic" aria-hidden="true">f</span>Facebook</a>` : ""}
         </div>
+        ${helperHtml}
       </article>`;
     };
     const html = card(s.groom, "Chú rể") + card(s.bride, "Cô dâu");

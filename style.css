@@ -62,8 +62,9 @@ a{color:var(--berry)}
   box-shadow:0 30px 80px -30px rgba(90,58,46,.4);position:relative;
 }
 .cover-sticker{width:150px;height:150px;margin:-110px auto 12px}
-.cover-to{color:var(--cocoa-soft);font-weight:600}
-.cover-names{font-size:2.6rem;font-weight:800;margin:.25rem 0}
+.cover-to{color:var(--cocoa-soft);font-weight:600;font-size:1.05rem;margin-bottom:16px}
+.cover-names{font-size:2.5rem;font-weight:800;margin:0 0 14px;line-height:1.1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cover-names .amp{font-size:.55em;color:var(--berry);font-weight:700}
 .cover-date{font-family:var(--display);font-size:1.1rem;color:var(--berry);margin-bottom:1.5rem}
 body.opened .cover{opacity:0;visibility:hidden}
 body:not(.opened){overflow:hidden}
@@ -342,7 +343,7 @@ body:not(.opened) .float-sticker{display:none}
    ===================================================== */
 .hi{font-family:var(--hi-font);font-weight:900;color:var(--hi);line-height:1;display:block;user-select:none}
 .cover-inner{overflow:visible}
-.cover-hi{font-size:2.6rem;margin:0 auto 6px}
+.cover-hi{font-size:2.6rem;margin:4px auto 12px}
 .hi-corner{position:absolute;font-size:1.5rem;opacity:.85}
 .hi-corner.tl{top:16px;left:18px}
 .hi-corner.br{bottom:16px;right:18px}
@@ -384,7 +385,7 @@ body:not(.opened) .float-sticker{display:none}
    ===================================================== */
 .contacts{display:grid;gap:22px}
 .contact-card{
-  position:relative;text-align:center;background:#fff;border-radius:var(--radius-lg);padding:34px 22px 28px;
+  position:relative;text-align:center;background:#fff;border-radius:var(--radius-lg);padding:38px 22px 48px;
   box-shadow:0 0 0 2px var(--line), 0 18px 40px -24px rgba(90,58,46,.35);
 }
 .contact-card::before{content:"";position:absolute;inset:8px;border:1.5px dashed #F2B8C6;border-radius:22px;pointer-events:none}
@@ -415,3 +416,18 @@ body:not(.opened) .float-sticker{display:none}
   .wishes{max-height:520px}
 }
 @media (prefers-reduced-motion:reduce){ .float-sticker{animation:none} }
+
+/* Bố mẹ: 2 dòng Ông / Bà */
+.person-family{display:grid;gap:2px;font-size:.95rem;margin:.4rem 0}
+.person-family span{color:var(--berry);font-weight:700}
+
+/* Người hỗ trợ trong thẻ liên hệ */
+.helpers{position:relative;margin-top:20px;padding-top:16px;border-top:1.5px dashed #F2B8C6;text-align:left}
+.helpers-title{font-family:var(--display);font-weight:700;text-align:center;margin-bottom:10px;color:var(--cocoa-soft)}
+.helper{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:#FFF6F8}
+.helper + .helper{margin-top:8px}
+.helper-info{display:grid;line-height:1.35;min-width:0}
+.helper-info span{font-size:.88rem;color:var(--cocoa-soft)}
+.helper-info .helper-phone{font-weight:700;color:var(--cocoa)}
+.helper-btns{display:flex;gap:6px;flex-shrink:0}
+.cbtn-mini{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:800}
