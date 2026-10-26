@@ -78,7 +78,11 @@
 
     // Bìa
     const guest = new URLSearchParams(location.search).get("to");
-    $("#coverTo").textContent = guest ? `Thân mời ${guest.slice(0, 60)}` : "Thân mời bạn";
+    const cv = s.cover || {};
+    $("#coverTo").textContent = cv.line1 || "";
+    $("#coverGuest").textContent = guest ? guest.slice(0, 60) : (cv.guestDefault || "Bạn");
+    $("#coverLine2").textContent = cv.line2 || "";
+    $("#coverTo").hidden = !cv.line1; $("#coverLine2").hidden = !cv.line2;
     $("#coverNames").innerHTML = `<span>${esc(s.couple.groomName)}</span><span class="amp">&amp;</span><span>${esc(s.couple.brideName)}</span>`;
     $("#coverDate").textContent = wDate ? fmtDate(wDate) : "";
     setSticker($("#coverSticker"), s.decor.coverSticker);

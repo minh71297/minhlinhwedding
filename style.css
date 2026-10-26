@@ -62,7 +62,9 @@ a{color:var(--berry)}
   box-shadow:0 30px 80px -30px rgba(90,58,46,.4);position:relative;
 }
 .cover-sticker{width:150px;height:150px;margin:-110px auto 12px}
-.cover-to{color:var(--cocoa-soft);font-weight:600;font-size:1.05rem;margin-bottom:16px}
+.cover-to{color:var(--cocoa-soft);font-weight:600;font-size:.95rem;letter-spacing:.04em}
+.cover-guest{font-family:var(--display);font-weight:700;font-size:1.45rem;color:var(--berry);line-height:1.25;margin:2px 0 4px;overflow-wrap:anywhere}
+.cover-line2{color:var(--cocoa-soft);font-size:.95rem;margin-bottom:18px}
 .cover-names{font-size:2.5rem;font-weight:800;margin:0 0 14px;line-height:1.1;display:flex;flex-direction:column;align-items:center;gap:2px}
 .cover-names .amp{font-size:.55em;color:var(--berry);font-weight:700}
 .cover-date{font-family:var(--display);font-size:1.1rem;color:var(--berry);margin-bottom:1.5rem}
