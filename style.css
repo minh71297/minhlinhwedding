@@ -664,8 +664,8 @@ body:not(.opened) .wish-bar{display:none}
     transition:opacity .3s;
   }
   html.feed-off .m-feed,body:not(.opened) .m-feed{opacity:0;visibility:hidden}
-  .m-track{display:flex;flex-direction:column;align-items:center;will-change:transform}
-  .m-feed .bubble{flex-shrink:0;margin-bottom:7px;max-width:100%;border-radius:16px;padding:7px 12px;background:rgba(45,26,20,.55);font-weight:600;font-size:.86rem;text-align:center;animation:none}
+  .m-track{display:flex;flex-direction:column;align-items:flex-start;will-change:transform}
+  .m-feed .bubble{flex-shrink:0;margin-bottom:7px;max-width:100%;border-radius:16px;padding:7px 12px;background:rgba(45,26,20,.55);font-weight:600;font-size:.86rem;text-align:left;animation:none}
   .m-feed .bubble span{-webkit-line-clamp:3}
   .bn{font-family:var(--body);font-size:.66rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#FFC9D5;margin-right:6px}
 
@@ -731,11 +731,12 @@ body:not(.opened) .wish-bar{display:none}
   .book-hi{color:#FFE3A3;font-size:1.6rem}
   .book-title{font-size:.8rem;font-weight:800;letter-spacing:.32em;text-transform:uppercase;color:#FFE3A3;margin-top:4px}
   .book-feed{
-    flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:14px 2px;
+    flex:1;min-height:0;overflow:hidden;padding:0 2px;touch-action:none;cursor:grab;user-select:none;
     -webkit-mask-image:linear-gradient(transparent, #000 6%, #000 94%, transparent);mask-image:linear-gradient(transparent, #000 6%, #000 94%, transparent);
     overscroll-behavior:contain;
   }
-  .chip{max-width:100%;flex-shrink:0;background:rgba(255,255,255,.16);border-radius:16px;padding:10px 14px;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+  .book-track{display:flex;flex-direction:column;align-items:flex-start;will-change:transform}
+  .chip{margin-bottom:9px;max-width:100%;flex-shrink:0;background:rgba(255,255,255,.16);border-radius:16px;padding:10px 14px;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
   .chip .bn{color:rgba(255,255,255,.72)}
   .book-empty{text-align:center;opacity:.85;margin:auto}
   .book-send{

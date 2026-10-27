@@ -619,7 +619,7 @@
 
     // Sổ lưu bút
     const book = $("#bookSheet");
-    $("#mBook").onclick = () => { renderBook(state); book.showModal(); startBookScroll(); };
+    $("#mBook").onclick = () => { book.showModal(); startBookScroll(); };
     book.querySelector("[data-close-book]").onclick = () => book.close();
     book.addEventListener("click", (e) => { if (e.target === book) book.close(); });
     book.addEventListener("close", stopBookScroll);
@@ -629,33 +629,53 @@
       $("#bookPause").textContent = bookPaused ? "▶" : "❚❚";
       $("#bookPause").setAttribute("aria-label", bookPaused ? "Tiếp tục tự cuộn" : "Tạm dừng tự cuộn");
     };
+    // Kéo tay để đọc: tạm dừng chạy, thả tay 2 giây sau chạy tiếp
     const feed = $("#bookFeed");
-    ["touchstart", "pointerdown", "wheel"].forEach((ev) => feed.addEventListener(ev, () => { userHold = Date.now(); }, { passive: true }));
-    renderBook(state);
+    let dragY = null;
+    feed.addEventListener("pointerdown", (e) => { dragY = e.clientY; book.drag = true; feed.setPointerCapture(e.pointerId); });
+    feed.addEventListener("pointermove", (e) => {
+      if (dragY === null) return;
+      bookState.off += e.clientY - dragY; dragY = e.clientY; wrapBook(); paintBook();
+    });
+    const end = () => { if (dragY === null) return; dragY = null; book.drag = false; userHold = Date.now(); };
+    feed.addEventListener("pointerup", end); feed.addEventListener("pointercancel", end);
+    feed.addEventListener("wheel", (e) => { bookState.off -= e.deltaY; wrapBook(); paintBook(); userHold = Date.now(); }, { passive: true });
   }
 
+  // Sổ lưu bút: chữ trôi liên tục lên trên, lặp vòng không giật
+  const bookState = { off: 0, period: 0 };
   function renderBook(state) {
-    const list = state.wishes || [];
-    $("#bookFeed").innerHTML = list.length
-      ? list.map((w) => `<div class="chip"><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</div>`).join("")
-      : `<p class="book-empty">Chưa có lời chúc nào. Bạn gửi lời chúc đầu tiên nhé!</p>`;
+    const list = state.wishes || [], feed = $("#bookFeed"), track = $("#bookTrack");
+    if (!list.length) { track.innerHTML = `<p class="book-empty">Chưa có lời chúc nào. Bạn gửi lời chúc đầu tiên nhé!</p>`; bookState.period = 0; bookState.off = 0; paintBook(); return; }
+    const one = list.map((w) => `<div class="chip"><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</div>`).join("");
+    track.innerHTML = one;
+    const h1 = track.scrollHeight, fh = feed.clientHeight;
+    if (!fh || h1 <= fh) { bookState.period = 0; bookState.off = 0; paintBook(); return; } // ít lời chúc: đứng yên
+    track.innerHTML = one + one;
+    bookState.period = h1;
+    bookState.off = Math.min(0, bookState.off);
+    wrapBook(); paintBook();
   }
+  function wrapBook() {
+    const p = bookState.period; if (!p) { bookState.off = 0; return; }
+    while (bookState.off <= -p) bookState.off += p;
+    while (bookState.off > 0) bookState.off -= p;
+  }
+  function paintBook() { $("#bookTrack").style.transform = `translate3d(0, ${bookState.off}px, 0)`; }
 
-  // Tự cuộn chậm sổ lưu bút; chạm tay vào thì tạm nghỉ 3 giây
   let bookRAF, bookPaused = false, userHold = 0;
   function startBookScroll() {
-    const feed = $("#bookFeed"); feed.scrollTop = 0;
-    let last = performance.now(), acc = 0;
+    bookState.off = 0;
+    renderBook(window.__wstate || { wishes: [] });
+    let last = 0;
     cancelAnimationFrame(bookRAF);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const step = (t) => {
-      const dt = t - last; last = t;
-      if (!bookPaused && Date.now() - userHold > 3000 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        acc += dt * 0.025;
-        if (acc >= 1) {
-          const px = Math.floor(acc); acc -= px;
-          if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 1) { if (Date.now() - userHold > 4000) { feed.scrollTop = 0; userHold = Date.now() - 1500; } }
-          else feed.scrollTop += px;
-        }
+      const dt = Math.min(64, t - (last || t)); last = t;
+      const book = $("#bookSheet");
+      if (bookState.period && !bookPaused && !book.drag && Date.now() - userHold > 2000 && !reduce.matches) {
+        bookState.off -= dt * 0.03; // khoảng 30px mỗi giây
+        wrapBook(); paintBook();
       }
       bookRAF = requestAnimationFrame(step);
     };
