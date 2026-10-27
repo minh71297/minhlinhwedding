@@ -46,7 +46,6 @@
     <header class="hero">
       <div class="hero-photo" id="heroPhoto">
         <img id="heroSticker" class="sticker hero-sticker" alt="" hidden>
-        <div class="hero-bubbles" id="heroBubbles" aria-hidden="true"></div>
       </div>
       <div class="hero-text">
         <span class="hi hero-hi" aria-hidden="true">囍</span>
@@ -154,14 +153,29 @@
   <nav class="slide-dots" id="slideDots" aria-label="Chuyển nhanh giữa các phần"></nav>
 
   <!-- Thanh cố định dưới đáy (điện thoại) -->
-  <nav class="dock" id="dock" aria-label="Lời chúc và mừng cưới">
-    <button type="button" data-open-wish><span class="dock-ic" aria-hidden="true">✍️</span>Gửi lời chúc</button>
-    <button type="button" data-open-sheet="wishSheet"><span class="dock-ic" aria-hidden="true">📖</span>Sổ lưu bút</button>
-    <button type="button" data-open-sheet="giftSheet" id="dockGift"><span class="dock-ic" aria-hidden="true">🎁</span>Mừng cưới</button>
-  </nav>
-  <dialog id="wishSheet" class="sheet" aria-label="Sổ lưu bút">
-    <button type="button" class="sheet-close" data-close-sheet aria-label="Đóng">×</button>
-    <div class="sheet-body"></div>
+  <!-- ĐIỆN THOẠI: lời chúc chạy, cột nút bên phải, ô gửi lời chúc dưới đáy -->
+  <div class="m-feed" id="mFeed" aria-hidden="true"></div>
+  <div class="m-side" id="mSide">
+    <button type="button" class="m-btn" id="mTop" aria-label="Về trang đầu" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V6M6 11l6-6 6 6"/></svg></button>
+    <button type="button" class="m-btn m-music" id="mMusic" aria-label="Bật/tắt nhạc" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg></button>
+    <button type="button" class="m-btn" id="mNext" aria-label="Bài tiếp theo" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M5 5l9 7-9 7zM16 5h3v14h-3z"/></svg></button>
+    <button type="button" class="m-btn" id="mBook" aria-label="Mở sổ lưu bút"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg></button>
+    <button type="button" class="m-btn" id="mChat" aria-label="Ẩn/hiện lời chúc đang chạy" aria-pressed="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5" stroke-linecap="round"/></svg></button>
+  </div>
+  <form class="m-bar" id="mBar" novalidate>
+    <button type="button" class="m-gift" id="mGift" aria-label="Hộp mừng cưới"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8S10.5 3.5 8 4.5 9 8 12 8zm0 0s1.5-4.5 4-3.5S15 8 12 8z"/></svg></button>
+    <input id="mInput" maxlength="1000" autocomplete="off" enterkeyhint="send" placeholder="Gửi lời chúc tới cô dâu & chú rể…" aria-label="Lời chúc">
+    <button type="submit" class="m-send" aria-label="Gửi lời chúc"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.53L15 12 3.39 13.87z"/></svg></button>
+  </form>
+
+  <!-- Sổ lưu bút dạng ngăn kéo -->
+  <dialog id="bookSheet" class="book" aria-labelledby="bookTitle">
+    <span class="book-handle" aria-hidden="true"></span>
+    <button type="button" class="book-pause" id="bookPause" aria-label="Tạm dừng tự cuộn" aria-pressed="false">❚❚</button>
+    <button type="button" class="book-close" data-close-book aria-label="Đóng">×</button>
+    <div class="book-head"><span class="hi book-hi" aria-hidden="true">囍</span><p class="book-title" id="bookTitle">Sổ lưu bút</p></div>
+    <div class="book-feed" id="bookFeed"></div>
+    <button type="button" class="book-send" data-open-wish>Gửi lời chúc</button>
   </dialog>
   <dialog id="giftSheet" class="sheet" aria-label="Hộp mừng cưới">
     <button type="button" class="sheet-close" data-close-sheet aria-label="Đóng">×</button>

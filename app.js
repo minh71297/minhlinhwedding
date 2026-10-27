@@ -339,13 +339,13 @@
   // Trang đầu điện thoại: lời chúc lần lượt nổi lên trên nền ảnh
   let bubTimer, bubIdx = 0;
   function bubbleShow(w) {
-    const box = $("#heroBubbles");
+    const box = $("#mFeed");
     const el = document.createElement("div");
     el.className = "bubble";
-    el.innerHTML = `<span><b>${esc(w.name)}</b> ${esc(w.message)}</span>`;
+    el.innerHTML = `<span><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</span>`;
     box.append(el);
     const items = [...box.children].filter((x) => !x.classList.contains("out"));
-    if (items.length > 4) { const old = items[0]; old.classList.add("out"); setTimeout(() => old.remove(), 500); }
+    if (items.length > 6) { const old = items[0]; old.classList.add("out"); setTimeout(() => old.remove(), 500); }
   }
   function startBubbles(state) {
     clearInterval(bubTimer);
@@ -451,7 +451,7 @@
 
     const form = $("#rsvpForm"), msg = $("#rsvpMsg");
     const guest = new URLSearchParams(location.search).get("to");
-    if (guest) form.name.value = guest.slice(0, 100);
+    form.name.value = savedName() || (guest ? guest.slice(0, 100) : "");
     form.onsubmit = async (e) => {
       e.preventDefault();
       const f = new FormData(form);
@@ -485,8 +485,20 @@
     };
   }
 
+  const NAME_KEY = "wedding_wish_name";
+  const savedName = () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } };
+  const saveName = (n) => { try { localStorage.setItem(NAME_KEY, n); } catch {} };
+
+  async function sendWish(state, name, message) {
+    if (sb) { const r = await sb.from("wishes").insert({ name, message }); if (r.error) throw r.error; }
+    saveName(name);
+    state.wishes.unshift({ name, message }); renderWishes(state.wishes);
+    tickerShow(0, state); bubbleShow({ name, message }); renderBook(state);
+  }
+
   function bindWishForm(state) {
     const form = $("#wishForm"), msg = $("#wishMsg"), dlg = $("#wishDialog");
+    setupMobileWish(state);
     document.querySelectorAll("[data-open-wish]").forEach((b) => b.addEventListener("click", () => {
       msg.textContent = ""; dlg.showModal(); (form.name.value ? form.message : form.name).focus();
     }));
@@ -504,11 +516,9 @@
       const btn = form.querySelector("button[type=submit]");
       btn.disabled = true; msg.textContent = "Đang gửi…";
       try {
-        if (sb) { const r = await sb.from("wishes").insert({ name, message }); if (r.error) throw r.error; }
-        state.wishes.unshift({ name, message }); renderWishes(state.wishes);
+        await sendWish(state, name, message);
         msg.textContent = "Cảm ơn bạn! Lời chúc đã được gửi.";
-        form.message.value = "";
-        tickerShow(0, state); bubbleShow({ name, message });
+        form.message.value = ""; $("#mInput").value = "";
         setTimeout(() => { dlg.close(); toast("Đã gửi lời chúc 💌"); }, 900);
       } catch (err) {
         console.error(err); msg.textContent = "Gửi chưa được. Kiểm tra mạng rồi thử lại giúp mình nhé.";
@@ -536,7 +546,6 @@
     const mq = window.matchMedia("(max-width: 699px)");
     const wishSec = document.getElementById("wishes-section"), giftSec = document.getElementById("gift-section");
     const homes = [
-      { sec: wishSec, parent: wishSec.parentNode, next: wishSec.nextSibling, sheet: $("#wishSheet .sheet-body") },
       { sec: giftSec, parent: giftSec.parentNode, next: giftSec.nextSibling, sheet: $("#giftSheet .sheet-body") },
     ];
     const place = () => {
@@ -544,17 +553,99 @@
       if (!mq.matches) document.querySelectorAll("dialog.sheet[open]").forEach((d) => d.close());
       buildDots();
     };
-    $("#dockGift").hidden = giftSec.hidden;
-    document.querySelectorAll("[data-open-sheet]").forEach((b) => b.addEventListener("click", () => document.getElementById(b.dataset.openSheet).showModal()));
+    $("#mGift").hidden = giftSec.hidden;
+    $("#mGift").onclick = () => $("#giftSheet").showModal();
     document.querySelectorAll("dialog.sheet").forEach((d) => {
       d.querySelector("[data-close-sheet]").onclick = () => d.close();
       d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
     });
-    // Bấm dòng lời chúc đang chạy: mở sổ lưu bút
-    $("#wishTicker").onclick = () => mq.matches ? $("#wishSheet").showModal() : wishSec.scrollIntoView({ behavior: "smooth" });
+    $("#wishTicker").onclick = () => wishSec.scrollIntoView({ behavior: "smooth" });
     mq.addEventListener("change", place);
     place();
   }
+
+  // ---------- Điện thoại: ô gửi lời chúc, cột nút, sổ lưu bút ----------
+  function setupMobileWish(state) {
+    const input = $("#mInput"), dlg = $("#wishDialog"), form = $("#wishForm");
+    $("#mBar").onsubmit = async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) { input.focus(); return; }
+      const name = savedName();
+      if (!name) {
+        // Lần đầu: hỏi tên, lời chúc được điền sẵn
+        form.message.value = message; $("#wishMsg").textContent = "";
+        dlg.showModal(); form.name.focus(); return;
+      }
+      const btn = $("#mBar .m-send"); btn.disabled = true;
+      try { await sendWish(state, name, message); input.value = ""; input.blur(); toast("Đã gửi lời chúc 💌"); }
+      catch (err) { console.error(err); toast("Gửi chưa được, thử lại giúp mình nhé"); }
+      finally { btn.disabled = false; }
+    };
+
+    // Ẩn / hiện lời chúc đang chạy
+    const chat = $("#mChat");
+    chat.onclick = () => {
+      const on = chat.getAttribute("aria-pressed") !== "true";
+      chat.setAttribute("aria-pressed", on);
+      document.documentElement.classList.toggle("feed-off", !on);
+    };
+    $("#mTop").onclick = () => goTo(0);
+
+    // Nhạc: nút tròn điều khiển cùng trình phát chính
+    const audio = $("#bgm"), mMusic = $("#mMusic");
+    mMusic.hidden = $("#musicCtrl").hidden;
+    $("#mNext").hidden = $("#musicNext").hidden;
+    mMusic.onclick = () => $("#musicBtn").click();
+    $("#mNext").onclick = () => $("#musicNext").click();
+    audio.addEventListener("play", () => mMusic.classList.add("playing"));
+    audio.addEventListener("pause", () => mMusic.classList.remove("playing"));
+
+    // Sổ lưu bút
+    const book = $("#bookSheet");
+    $("#mBook").onclick = () => { renderBook(state); book.showModal(); startBookScroll(); };
+    book.querySelector("[data-close-book]").onclick = () => book.close();
+    book.addEventListener("click", (e) => { if (e.target === book) book.close(); });
+    book.addEventListener("close", stopBookScroll);
+    $("#bookPause").onclick = () => {
+      bookPaused = !bookPaused;
+      $("#bookPause").setAttribute("aria-pressed", bookPaused);
+      $("#bookPause").textContent = bookPaused ? "▶" : "❚❚";
+      $("#bookPause").setAttribute("aria-label", bookPaused ? "Tiếp tục tự cuộn" : "Tạm dừng tự cuộn");
+    };
+    const feed = $("#bookFeed");
+    ["touchstart", "pointerdown", "wheel"].forEach((ev) => feed.addEventListener(ev, () => { userHold = Date.now(); }, { passive: true }));
+    renderBook(state);
+  }
+
+  function renderBook(state) {
+    const list = state.wishes || [];
+    $("#bookFeed").innerHTML = list.length
+      ? list.map((w) => `<div class="chip"><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</div>`).join("")
+      : `<p class="book-empty">Chưa có lời chúc nào. Bạn gửi lời chúc đầu tiên nhé!</p>`;
+  }
+
+  // Tự cuộn chậm sổ lưu bút; chạm tay vào thì tạm nghỉ 3 giây
+  let bookRAF, bookPaused = false, userHold = 0;
+  function startBookScroll() {
+    const feed = $("#bookFeed"); feed.scrollTop = 0;
+    let last = performance.now(), acc = 0;
+    cancelAnimationFrame(bookRAF);
+    const step = (t) => {
+      const dt = t - last; last = t;
+      if (!bookPaused && Date.now() - userHold > 3000 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        acc += dt * 0.025;
+        if (acc >= 1) {
+          const px = Math.floor(acc); acc -= px;
+          if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 1) { if (Date.now() - userHold > 4000) { feed.scrollTop = 0; userHold = Date.now() - 1500; } }
+          else feed.scrollTop += px;
+        }
+      }
+      bookRAF = requestAnimationFrame(step);
+    };
+    bookRAF = requestAnimationFrame(step);
+  }
+  function stopBookScroll() { cancelAnimationFrame(bookRAF); }
 
   // ---------- Điện thoại: mỗi mục là 1 trang ----------
   // Trang ngắn: vuốt là sang trang mới. Trang dài: cuộn hết nội dung, vuốt thêm lần nữa mới sang trang.
@@ -574,6 +665,8 @@
     page.style.transition = instant ? "none" : "";
     page.style.transform = `translate3d(0, ${-s.offsetTop}px, 0)`;
     [...$("#slideDots").children].forEach((d, k) => d.classList.toggle("active", k === i));
+    document.documentElement.classList.toggle("on-first", i === 0);
+    $("#mTop").hidden = i === 0;
     if (!instant) { pager.lock = true; setTimeout(() => (pager.lock = false), 750); }
   }
   const next = () => goTo(pager.i + 1);
@@ -586,7 +679,7 @@
     document.querySelectorAll(".slide").forEach((s) => s.classList.remove("slide"));
     if (!pager.on) { page.style.transform = ""; pager.slides = []; $("#slideDots").replaceChildren(); return; }
     pager.slides = [...document.querySelectorAll("#page > header, #page > .section, #rsvpWishes > .section, #page > footer")]
-      .filter((el) => !el.hidden);
+      .filter((el) => !el.hidden && getComputedStyle(el).display !== "none");
     pager.slides.forEach((s) => s.classList.add("slide"));
     $("#slideDots").replaceChildren(...pager.slides.map((_, i) => {
       const b = document.createElement("button");
