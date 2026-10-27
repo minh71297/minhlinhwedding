@@ -70,7 +70,8 @@
   }
 
   // ---------- Hiển thị ----------
-  function render({ s, gallery, wishes }) {
+  function render(state) {
+    const { s, gallery, wishes } = state;
     const wDate = toDate(s.weddingDate);
     const names = `${s.couple.groomName} & ${s.couple.brideName}`;
     document.title = `Thiệp cưới ${names}`;
@@ -252,10 +253,15 @@
     document.body.classList.toggle("no-hi", s.decor.showHi === false);
 
     // Nhạc
-    const music = safeUrl(s.music?.url);
-    if (music) {
-      $("#bgm").src = music; $("#bgm").volume = 0.6; $("#musicBtn").hidden = false;
-      if (s.music.title) $("#musicBtn").title = s.music.title;
+    // Danh sách nhạc (hỗ trợ cả kiểu cũ 1 bài)
+    let tracks = (s.music?.tracks || []).filter((t) => t && safeUrl(t.url)).map((t) => ({ title: t.title || "", url: safeUrl(t.url) }));
+    if (!tracks.length && safeUrl(s.music?.url)) tracks = [{ title: s.music.title || "", url: safeUrl(s.music.url) }];
+    if (s.music?.shuffle) for (let i = tracks.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [tracks[i], tracks[j]] = [tracks[j], tracks[i]]; }
+    state.tracks = tracks;
+    if (tracks.length) {
+      $("#bgm").src = tracks[0].url; $("#bgm").volume = 0.6; $("#bgm").loop = tracks.length === 1;
+      $("#musicTitle").textContent = tracks[0].title;
+      $("#musicCtrl").hidden = false; $("#musicNext").hidden = tracks.length < 2;
     }
   }
 
@@ -362,8 +368,29 @@
       mBtn.classList.toggle("playing", on); mBtn.setAttribute("aria-pressed", on);
       mLabel.textContent = on ? "Tắt nhạc" : "Bật nhạc";
     };
-    const play = () => audio.src && audio.play().then(() => setUI(true)).catch(() => setUI(false));
+    let wantPlay = false;
+    const play = () => { wantPlay = true; return audio.src && audio.play().then(() => setUI(true)).catch(() => setUI(false)); };
     audio.addEventListener("pause", () => setUI(false));
+    // Chuyển bài: hết bài tự sang bài sau, lỗi bài nào thì bỏ qua bài đó
+    const tracks = state.tracks || [];
+    let idx = 0, fails = 0;
+    const goTo = (i, autoPlay) => {
+      if (!tracks.length) return;
+      idx = (i + tracks.length) % tracks.length;
+      audio.src = tracks[idx].url;
+      $("#musicTitle").textContent = tracks[idx].title;
+      if (autoPlay) play();
+    };
+    audio.addEventListener("ended", () => { if (tracks.length > 1) goTo(idx + 1, true); });
+    audio.addEventListener("playing", () => { fails = 0; });
+    audio.addEventListener("error", () => {
+      if (tracks.length > 1 && fails < tracks.length) { fails++; goTo(idx + 1, wantPlay); }
+    });
+    $("#musicNext").onclick = () => {
+      mBtn.classList.remove("nudge");
+      goTo(idx + 1, true);
+      if (tracks[idx].title) toast("♪ " + tracks[idx].title);
+    };
     $("#openBtn").onclick = () => {
       document.body.classList.add("opened");
       $("#page").removeAttribute("aria-hidden");
@@ -372,7 +399,7 @@
     };
     mBtn.onclick = () => {
       mBtn.classList.remove("nudge");
-      if (audio.paused) play(); else audio.pause();
+      if (audio.paused) play(); else { wantPlay = false; audio.pause(); }
     };
 
     document.addEventListener("click", async (e) => {

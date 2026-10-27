@@ -138,10 +138,14 @@
   </main>
 
   <img id="floatSticker" class="sticker float-sticker" alt="" hidden>
-  <button id="musicBtn" class="music-btn" type="button" aria-pressed="false" hidden>
-    <span class="music-disc" aria-hidden="true">♪</span><span class="music-label">Bật nhạc</span>
-  </button>
-  <audio id="bgm" loop preload="none"></audio>
+  <div class="music-ctrl" id="musicCtrl" hidden>
+    <button id="musicBtn" class="music-btn" type="button" aria-pressed="false">
+      <span class="music-disc" aria-hidden="true">♪</span>
+      <span class="music-text"><span class="music-label">Bật nhạc</span><span class="music-title" id="musicTitle"></span></span>
+    </button>
+    <button id="musicNext" class="music-next" type="button" aria-label="Bài tiếp theo" title="Bài tiếp theo" hidden>⏭</button>
+  </div>
+  <audio id="bgm" preload="none"></audio>
 
   <dialog id="lightbox" class="lightbox">
     <button class="lb-close" type="button" aria-label="Đóng">×</button>
