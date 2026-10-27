@@ -317,9 +317,44 @@
   }
 
   function renderWishes(list) {
-    $("#wishes").innerHTML = list.length
-      ? list.map((w) => `<div class="wish"><strong>${esc(w.name)}</strong><p>${esc(w.message)}</p></div>`).join("")
-      : `<p class="empty">Hãy là người đầu tiên gửi lời chúc nhé.</p>`;
+    const cards = list.map((w) => `<div class="wish"><strong>${esc(w.name)}</strong><p>${esc(w.message)}</p></div>`).join("");
+    $("#wishes").innerHTML = list.length ? cards : `<p class="empty">Hãy là người đầu tiên gửi lời chúc nhé.</p>`;
+    renderPanel(list, cards);
+  }
+
+  // Cột lời chúc bên trái (máy tính): tự cuộn chậm lên trên khi nhiều lời chúc
+  function renderPanel(list, cards) {
+    const track = $("#wpTrack"), feed = $("#wpFeed");
+    track.classList.remove("scrolling");
+    track.innerHTML = list.length ? cards : `<p class="empty">Hãy là người đầu tiên gửi lời chúc nhé.</p>`;
+    requestAnimationFrame(() => {
+      if (list.length && track.scrollHeight > feed.clientHeight + 10) {
+        track.innerHTML = cards + cards;
+        track.style.setProperty("--dur", `${Math.max(20, list.length * 5)}s`);
+        track.classList.add("scrolling");
+      }
+    });
+  }
+
+  // Trang đầu điện thoại: lời chúc lần lượt nổi lên trên nền ảnh
+  let bubTimer, bubIdx = 0;
+  function bubbleShow(w) {
+    const box = $("#heroBubbles");
+    const el = document.createElement("div");
+    el.className = "bubble";
+    el.innerHTML = `<span><b>${esc(w.name)}</b> ${esc(w.message)}</span>`;
+    box.append(el);
+    const items = [...box.children].filter((x) => !x.classList.contains("out"));
+    if (items.length > 4) { const old = items[0]; old.classList.add("out"); setTimeout(() => old.remove(), 500); }
+  }
+  function startBubbles(state) {
+    clearInterval(bubTimer);
+    const tick = () => {
+      if (document.hidden || !state.wishes.length) return;
+      if (!window.matchMedia("(max-width: 699px)").matches) return;
+      bubbleShow(state.wishes[bubIdx % Math.min(state.wishes.length, 30)]); bubIdx++;
+    };
+    tick(); bubTimer = setInterval(tick, 2800);
   }
 
   let cdTimer;
@@ -458,7 +493,7 @@
     dlg.querySelector("[data-close-wish]").onclick = () => dlg.close();
     dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
     $("#wishTicker").onclick = () => document.getElementById("wishes-section").scrollIntoView({ behavior: "smooth" });
-    startTicker(state);
+    startTicker(state); startBubbles(state);
     const guest = new URLSearchParams(location.search).get("to");
     if (guest) form.name.value = guest.slice(0, 100);
     form.onsubmit = async (e) => {
@@ -473,7 +508,7 @@
         state.wishes.unshift({ name, message }); renderWishes(state.wishes);
         msg.textContent = "Cảm ơn bạn! Lời chúc đã được gửi.";
         form.message.value = "";
-        tickerShow(0, state);
+        tickerShow(0, state); bubbleShow({ name, message });
         setTimeout(() => { dlg.close(); toast("Đã gửi lời chúc 💌"); }, 900);
       } catch (err) {
         console.error(err); msg.textContent = "Gửi chưa được. Kiểm tra mạng rồi thử lại giúp mình nhé.";
@@ -521,34 +556,103 @@
     place();
   }
 
-  let dotsIO;
+  // ---------- Điện thoại: mỗi mục là 1 trang ----------
+  // Trang ngắn: vuốt là sang trang mới. Trang dài: cuộn hết nội dung, vuốt thêm lần nữa mới sang trang.
+  const pager = { on: false, i: 0, slides: [], lock: false };
+  const pageMQ = window.matchMedia("(max-width: 699px)");
+  const atTop = (el) => el.scrollTop <= 1;
+  const atBottom = (el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+
+  function goTo(i, instant, fromBelow) {
+    if (!pager.on || !pager.slides.length) return;
+    i = Math.max(0, Math.min(pager.slides.length - 1, i));
+    const s = pager.slides[i];
+    s.scrollTop = fromBelow ? s.scrollHeight : 0;
+    pager.i = i;
+    pager.edge = { top: atTop(s), bottom: atBottom(s) };
+    const page = $("#page");
+    page.style.transition = instant ? "none" : "";
+    page.style.transform = `translate3d(0, ${-s.offsetTop}px, 0)`;
+    [...$("#slideDots").children].forEach((d, k) => d.classList.toggle("active", k === i));
+    if (!instant) { pager.lock = true; setTimeout(() => (pager.lock = false), 750); }
+  }
+  const next = () => goTo(pager.i + 1);
+  const prev = () => goTo(pager.i - 1, false, true);
+
   function buildDots() {
-    const nav = $("#slideDots");
-    const slides = [...document.querySelectorAll("#page > header, #page > .section, #rsvpWishes > .section, #page > footer")].filter((el) => !el.hidden);
-    dotsIO?.disconnect();
-    nav.replaceChildren(...slides.map((sec, i) => {
+    const page = $("#page");
+    pager.on = pageMQ.matches;
+    document.documentElement.classList.toggle("paged", pager.on);
+    document.querySelectorAll(".slide").forEach((s) => s.classList.remove("slide"));
+    if (!pager.on) { page.style.transform = ""; pager.slides = []; $("#slideDots").replaceChildren(); return; }
+    pager.slides = [...document.querySelectorAll("#page > header, #page > .section, #rsvpWishes > .section, #page > footer")]
+      .filter((el) => !el.hidden);
+    pager.slides.forEach((s) => s.classList.add("slide"));
+    $("#slideDots").replaceChildren(...pager.slides.map((_, i) => {
       const b = document.createElement("button");
-      b.type = "button"; b.setAttribute("aria-label", `Phần ${i + 1}`);
-      b.onclick = () => sec.scrollIntoView({ behavior: "smooth" });
+      b.type = "button"; b.setAttribute("aria-label", `Trang ${i + 1}`);
+      b.onclick = () => goTo(i);
       return b;
     }));
-    const dots = [...nav.children];
-    const io = dotsIO = new IntersectionObserver((entries) => {
-      entries.forEach((en) => {
-        if (!en.isIntersecting) return;
-        const i = slides.indexOf(en.target);
-        dots.forEach((d, k) => d.classList.toggle("active", k === i));
-      });
-    }, { rootMargin: "-45% 0px -45% 0px" });
-    slides.forEach((s) => io.observe(s));
-    dots[0]?.classList.add("active");
+    goTo(Math.min(pager.i, pager.slides.length - 1), true);
+  }
+
+  function setupPager() {
+    const page = $("#page"), hero = $(".hero"), story = document.getElementById("story-section");
+    // Những phần nằm giữa các trang được gắn vào trang gần nhất khi ở chế độ điện thoại
+    const moves = [
+      { node: $(".ribbon"), to: hero, where: "append" },
+      { node: $(".demo-bar"), to: hero, where: "prepend" },
+      { node: $("#dividerSticker"), to: story, where: "prepend" },
+    ].filter((m) => m.node && m.to).map((m) => ({ ...m, home: m.node.parentNode, next: m.node.nextSibling }));
+    const placeMoves = () => moves.forEach((m) => pageMQ.matches ? m.to[m.where](m.node) : m.home.insertBefore(m.node, m.next));
+    pageMQ.addEventListener("change", placeMoves);
+    placeMoves();
+
+    // Vuốt trên điện thoại
+    let y0 = 0, top0 = false, bottom0 = false;
+    page.addEventListener("touchstart", (e) => {
+      if (!pager.on) return;
+      const s = pager.slides[pager.i]; if (!s) return;
+      y0 = e.touches[0].clientY; top0 = atTop(s); bottom0 = atBottom(s);
+    }, { passive: true });
+    page.addEventListener("touchend", (e) => {
+      if (!pager.on || pager.lock) return;
+      const dy = y0 - e.changedTouches[0].clientY;
+      if (dy > 50 && bottom0) next();
+      else if (dy < -50 && top0) prev();
+    }, { passive: true });
+
+    // Lăn chuột / touchpad: trình duyệt cuộn trước khi báo sự kiện, nên dùng vị trí đã "dừng" của lần cuộn trước
+    let settle;
+    page.addEventListener("scroll", (e) => {
+      if (!pager.on || e.target !== pager.slides[pager.i]) return;
+      clearTimeout(settle);
+      settle = setTimeout(() => { const s = pager.slides[pager.i]; pager.edge = { top: atTop(s), bottom: atBottom(s) }; }, 180);
+    }, { capture: true, passive: true });
+    let lastWheel = 0;
+    window.addEventListener("wheel", (e) => {
+      if (!pager.on) return;
+      const now = Date.now(), fresh = now - lastWheel > 220; lastWheel = now;
+      if (!fresh || pager.lock || document.querySelector("dialog[open]") || !pager.edge) return;
+      if (e.deltaY > 0 && pager.edge.bottom) next();
+      else if (e.deltaY < 0 && pager.edge.top) prev();
+    }, { passive: true });
+
+    window.addEventListener("keydown", (e) => {
+      if (!pager.on || pager.lock || document.querySelector("dialog[open]")) return;
+      const s = pager.slides[pager.i]; if (!s) return;
+      if (["ArrowDown", "PageDown", " "].includes(e.key) && atBottom(s)) { e.preventDefault(); next(); }
+      if (["ArrowUp", "PageUp"].includes(e.key) && atTop(s)) { e.preventDefault(); prev(); }
+    });
+    window.addEventListener("resize", () => goTo(pager.i, true));
   }
 
   load()
-    .then((state) => { render(state); bindEvents(state); bindWishForm(state); setupDock(); })
+    .then((state) => { render(state); bindEvents(state); bindWishForm(state); setupPager(); setupDock(); })
     .catch((err) => {
       console.error(err);
       const state = { s: window.WEDDING_DEFAULTS, gallery: [], wishes: [] };
-      render(state); bindEvents(state); bindWishForm(state); setupDock();
+      render(state); bindEvents(state); bindWishForm(state); setupPager(); setupDock();
     });
 })();

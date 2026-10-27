@@ -507,13 +507,29 @@ body:not(.opened) .wish-bar{display:none}
    ===================================================== */
 .slide-dots{display:none}
 @media (max-width:699px){
-  html{scroll-snap-type:y proximity}
-  .hero,#page > .section,.rsvp-wishes > .section,.footer{
-    scroll-snap-align:start;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  html.paged,html.paged body{height:100%;overflow:hidden;overscroll-behavior:none}
+  html.paged #page{position:relative;min-height:0;transition:transform .7s cubic-bezier(.65,0,.35,1);will-change:transform}
+  html.paged .rsvp-wishes{display:contents}
+  html.paged .slide{
+    height:100vh;height:100svh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    display:flex;flex-direction:column;
   }
-  #page > .section,.rsvp-wishes > .section,.footer{padding-top:84px;padding-right:28px}
+  /* Nội dung ngắn: nằm giữa trang. Nội dung dài: cuộn từ trên xuống, không bị cắt */
+  html.paged .slide:not(.hero){justify-content:flex-start;justify-content:safe center}
+  html.paged .slide.section,html.paged .slide.footer{padding:48px 28px 100px 22px}
+  html.paged .slide.section::after,html.paged .rsvp-wishes::after{content:none!important}
+  html.paged .slide.section{border-top:0!important}
+  /* Trang đầu: chỉ ảnh nền toàn màn hình + lời chúc nổi lên */
+  html.paged .hero.slide{padding:0;overflow:hidden}
+  html.paged .hero-photo{aspect-ratio:auto;flex:1 1 auto;min-height:0;height:auto;border-radius:0}
+  html.paged .hero-text,html.paged .hero .ribbon,html.paged .hero-sticker{display:none}
+  html.paged .hero-bubbles{
+    display:flex;flex-direction:column;align-items:flex-start;gap:8px;position:absolute;
+    left:14px;right:40px;bottom:calc(96px + env(safe-area-inset-bottom,0px));
+  }
+  .wish-bar{display:none}
+  html.paged #invite.slide{overflow-x:hidden;overflow-y:auto}
   .section[hidden]{display:none}
-  .hero{justify-content:flex-start}
 
   .slide-dots{
     display:flex;flex-direction:column;align-items:center;gap:9px;position:fixed;z-index:38;
@@ -527,7 +543,7 @@ body:not(.opened) .wish-bar{display:none}
   .slide-dots button.active{height:22px;opacity:1;background:var(--berry)}
   .slide-dots button:focus-visible{outline:2px solid var(--berry);outline-offset:3px}
 }
-@media (prefers-reduced-motion:reduce){ html{scroll-snap-type:none} }
+@media (prefers-reduced-motion:reduce){ html.paged #page{transition:none} }
 
 /* =====================================================
    ĐIỆN THOẠI: THANH CỐ ĐỊNH DƯỚI ĐÁY + NGĂN KÉO
@@ -573,3 +589,56 @@ body:not(.opened) .wish-bar{display:none}
   .sheet-close{position:sticky;top:10px;float:right;margin:10px 12px 0 0;z-index:2;width:36px;height:36px;border-radius:50%;border:0;background:var(--blush);color:var(--cocoa);font-size:1.5rem;line-height:1;cursor:pointer}
   @keyframes sheetUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 }
+
+/* Lời chúc nổi trên ảnh (điện thoại) */
+.hero-bubbles{display:none}
+.bubble{
+  max-width:100%;color:#fff;font-size:.9rem;line-height:1.4;padding:8px 13px;border-radius:18px 18px 18px 4px;
+  background:rgba(45,26,20,.48);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  animation:bubbleIn .5s ease;
+}
+.bubble span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.bubble b{color:var(--butter)}
+.bubble.out{animation:bubbleOut .5s ease forwards}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes bubbleOut{to{opacity:0;transform:translateY(-12px)}}
+
+/* =====================================================
+   MÁY TÍNH: 1/3 TRÁI LÀ LỜI CHÚC, 2/3 PHẢI LÀ THIỆP
+   ===================================================== */
+.wish-panel{display:none}
+@media (min-width:1024px){
+  .wish-panel{
+    display:flex;flex-direction:column;position:fixed;z-index:30;left:0;top:0;bottom:0;width:33.333vw;
+    padding:calc(36px + env(safe-area-inset-top,0px)) 28px calc(20px + env(safe-area-inset-bottom,0px));
+    background-color:var(--blush);
+    background-image:radial-gradient(circle at 12px 12px, #F6C9D4 2.5px, transparent 3px);background-size:28px 28px;
+    border-right:2px solid var(--line);
+  }
+  .wp-head{text-align:center;display:grid;justify-items:center;gap:8px;padding-bottom:20px}
+  .wp-hi{font-size:2.4rem}
+  .wp-head h2{margin:0;font-size:2rem}
+  .wp-feed{
+    flex:1;min-height:0;overflow:hidden;position:relative;padding:0 3px;
+    -webkit-mask-image:linear-gradient(transparent, #000 8%, #000 92%, transparent);
+            mask-image:linear-gradient(transparent, #000 8%, #000 92%, transparent);
+  }
+  .wp-track .wish{margin-bottom:12px;background:#fff;box-shadow:0 0 0 2px var(--line)}
+  .wp-track .wish:nth-child(even){background:#FFF8E6}
+  .wp-track.scrolling{animation:feedUp var(--dur,40s) linear infinite}
+  .wp-feed:hover .wp-track{animation-play-state:paused}
+  @keyframes feedUp{to{transform:translateY(-50%)}}
+
+  .page{margin-left:33.333vw}
+  .wish-bar{display:none}
+  #wishes-section{display:none}
+  .rsvp-wishes{grid-template-columns:1fr}
+  .rsvp-wishes > #rsvp-section{max-width:640px;width:100%;margin:0 auto}
+  .rsvp-wishes h2,.rsvp-wishes .muted{text-align:center}
+  .rsvp-sticker{margin:-40px auto 8px}
+  .float-sticker{left:calc(33.333vw + 24px)}
+  .names{font-size:clamp(2.8rem,3.6vw,4.4rem)}
+  .hero-sticker{width:160px;height:160px;right:-80px}
+  .hero-photo:has(.hero-sticker:not([hidden])) + .hero-text{padding:56px 36px 56px 100px}
+}
+@media (prefers-reduced-motion:reduce){ .wp-track.scrolling{animation:none} }
