@@ -192,14 +192,37 @@
     const gifts = [s.gift.groom, s.gift.bride].filter((g) => g && (g.account || safeUrl(g.qr)));
     hideSection("gift-section", s.gift.enabled === false || !gifts.length);
     $("#giftNote").textContent = s.gift.note;
-    $("#gifts").innerHTML = gifts.map((g) => `<article class="gift">
+    // Hai hộp quà đóng: bấm hộp nào mới hiện tài khoản người đó
+    const giftBox = (g, i) => `<button type="button" class="gift-box" data-gift="${i}" aria-expanded="false" aria-controls="giftPanel">
+        <span class="gb" aria-hidden="true"><span class="gb-lid"></span><span class="gb-body"></span><span class="gb-bow"></span></span>
+        <span class="gb-label">${esc(g.label)}</span>
+        <span class="gb-hint">Bấm để mở</span>
+      </button>`;
+    const giftDetail = (g) => `
+      <button type="button" class="gift-close" aria-label="Đóng">×</button>
       <h3>${esc(g.label)}</h3>
-      ${safeUrl(g.qr) ? `<img class="gift-qr" src="${esc(safeUrl(g.qr))}" alt="Mã QR ${esc(g.label)}" loading="lazy">` : ""}
+      ${safeUrl(g.qr) ? `<img class="gift-qr" src="${esc(safeUrl(g.qr))}" alt="Mã QR ${esc(g.label)}">` : ""}
       ${g.bank ? `<p>${esc(g.bank)}</p>` : ""}
       ${g.account ? `<p class="gift-acc">${esc(g.account)}</p>` : ""}
       ${g.owner ? `<p class="muted">${esc(g.owner)}</p>` : ""}
-      ${g.account ? `<button class="btn btn-ghost btn-small" type="button" data-copy="${esc(g.account)}">Sao chép số tài khoản</button>` : ""}
-    </article>`).join("");
+      ${g.account ? `<button class="btn btn-ghost btn-small" type="button" data-copy="${esc(g.account)}">Sao chép số tài khoản</button>` : ""}`;
+    $("#gifts").innerHTML = `<div class="gift-boxes${gifts.length === 1 ? " single" : ""}">${gifts.map(giftBox).join("")}</div>
+      <div class="gift-panel" id="giftPanel" role="region" aria-live="polite" hidden></div>`;
+    const panel = $("#giftPanel");
+    const closeGift = () => {
+      panel.hidden = true; panel.innerHTML = "";
+      document.querySelectorAll(".gift-box").forEach((b) => { b.setAttribute("aria-expanded", "false"); b.classList.remove("open"); b.querySelector(".gb-hint").textContent = "Bấm để mở"; });
+    };
+    $("#gifts").onclick = (e) => {
+      if (e.target.closest(".gift-close")) { closeGift(); return; }
+      const box = e.target.closest(".gift-box"); if (!box) return;
+      const wasOpen = box.classList.contains("open");
+      closeGift();
+      if (wasOpen) return;
+      box.classList.add("open"); box.setAttribute("aria-expanded", "true"); box.querySelector(".gb-hint").textContent = "Bấm để đóng";
+      panel.innerHTML = giftDetail(gifts[+box.dataset.gift]); panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
 
     // Footer
     $("#thanks").textContent = s.thanks;

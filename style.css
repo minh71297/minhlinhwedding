@@ -193,8 +193,7 @@ body:not(.opened){overflow:hidden}
 .wish p{white-space:pre-line;overflow-wrap:anywhere}
 
 /* Mừng cưới */
-.gifts{display:grid;gap:18px;margin-top:1.25rem}
-.gift{background:#fff;border-radius:var(--radius-lg);box-shadow:0 0 0 2px var(--line);padding:20px;text-align:center}
+.gifts{margin-top:1.5rem}
 .gift-qr{width:200px;height:200px;object-fit:contain;margin:12px auto;border-radius:12px;background:#fff}
 .gift-acc{font-family:var(--display);font-size:1.3rem;font-weight:800;letter-spacing:.02em}
 
@@ -252,7 +251,6 @@ body:not(.opened) .music-btn{display:none}
   .invite-text{font-size:1.15rem;max-width:46ch}
   .couple{grid-template-columns:1fr 1fr;gap:40px}
   .album{grid-template-columns:repeat(3,1fr);gap:12px}
-  .gifts{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
   .countdown{max-width:560px;margin-inline:auto;margin-bottom:1.75rem}
   .ribbon{margin:0 -20px}
   .hero-photo{aspect-ratio:4/3;background-position:center 30%}
@@ -433,3 +431,42 @@ body:not(.opened) .float-sticker{display:none}
 .helper-info .helper-phone{font-weight:700;color:var(--cocoa)}
 .helper-btns{display:flex;gap:6px;flex-shrink:0}
 .cbtn-mini{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:800}
+
+/* =====================================================
+   HỘP MỪNG CƯỚI: 2 hộp quà, bấm mới mở
+   ===================================================== */
+.gift-boxes{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:520px;margin:0 auto}
+.gift-boxes.single{grid-template-columns:minmax(0,240px);justify-content:center}
+.gift-box{
+  all:unset;box-sizing:border-box;cursor:pointer;display:grid;justify-items:center;gap:6px;text-align:center;
+  background:#fff;border-radius:var(--radius-lg);padding:22px 10px 16px;box-shadow:0 0 0 2px var(--line);transition:box-shadow .2s, transform .2s;
+}
+.gift-box:hover{transform:translateY(-2px)}
+.gift-box:focus-visible{outline:3px solid var(--berry);outline-offset:3px}
+.gift-box.open{box-shadow:0 0 0 3px var(--berry);background:#FFF6F8}
+.gb-label{font-family:var(--display);font-weight:700;font-size:1.05rem;line-height:1.2}
+.gb-hint{font-size:.8rem;color:var(--cocoa-soft)}
+
+/* Hộp quà vẽ bằng CSS */
+.gb{position:relative;width:86px;height:80px;margin-bottom:6px}
+.gb-body{position:absolute;left:8px;right:8px;bottom:0;height:52px;background:var(--berry);border-radius:6px 6px 10px 10px}
+.gb-lid{position:absolute;left:2px;right:2px;top:18px;height:18px;background:#EE8AA0;border-radius:6px;z-index:2;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.gb-body::before,.gb-lid::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:12px;transform:translateX(-50%);background:var(--butter)}
+.gb-bow{position:absolute;left:50%;top:2px;width:44px;height:20px;transform:translateX(-50%);z-index:3;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.gb-bow::before,.gb-bow::after{content:"";position:absolute;top:0;width:20px;height:18px;border:5px solid var(--butter);border-radius:50% 50% 10% 50%}
+.gb-bow::before{left:0;transform:rotate(-20deg)}
+.gb-bow::after{right:0;transform:rotate(20deg) scaleX(-1)}
+.gift-box:hover .gb-lid,.gift-box:hover .gb-bow{transform:translateY(-3px)}
+.gift-box.open .gb-lid{transform:translateY(-14px) rotate(-12deg)}
+.gift-box.open .gb-bow{transform:translate(-80%,-16px) rotate(-12deg)}
+.no-hi .gift-box .gb-body::after{content:none}
+.gb-body::after{content:"囍";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--hi-font);font-weight:900;color:var(--hi);font-size:1.3rem;padding-top:4px}
+
+/* Thông tin tài khoản hiện ra sau khi mở hộp */
+.gift-panel{
+  position:relative;max-width:520px;margin:16px auto 0;background:#fff;border-radius:var(--radius-lg);padding:26px 20px 22px;text-align:center;
+  box-shadow:0 0 0 2px var(--berry), 0 18px 40px -24px rgba(90,58,46,.4);animation:giftIn .3s ease;
+}
+.gift-panel[hidden]{display:none}
+.gift-close{position:absolute;top:10px;right:12px;width:34px;height:34px;border-radius:50%;border:0;background:var(--blush);color:var(--cocoa);font-size:1.4rem;cursor:pointer;line-height:1}
+@keyframes giftIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
