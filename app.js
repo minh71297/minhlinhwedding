@@ -451,7 +451,14 @@
   }
 
   function bindWishForm(state) {
-    const form = $("#wishForm"), msg = $("#wishMsg");
+    const form = $("#wishForm"), msg = $("#wishMsg"), dlg = $("#wishDialog");
+    document.querySelectorAll("[data-open-wish]").forEach((b) => b.addEventListener("click", () => {
+      msg.textContent = ""; dlg.showModal(); (form.name.value ? form.message : form.name).focus();
+    }));
+    dlg.querySelector("[data-close-wish]").onclick = () => dlg.close();
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    $("#wishTicker").onclick = () => document.getElementById("wishes-section").scrollIntoView({ behavior: "smooth" });
+    startTicker(state);
     const guest = new URLSearchParams(location.search).get("to");
     if (guest) form.name.value = guest.slice(0, 100);
     form.onsubmit = async (e) => {
@@ -466,17 +473,82 @@
         state.wishes.unshift({ name, message }); renderWishes(state.wishes);
         msg.textContent = "Cảm ơn bạn! Lời chúc đã được gửi.";
         form.message.value = "";
+        tickerShow(0, state);
+        setTimeout(() => { dlg.close(); toast("Đã gửi lời chúc 💌"); }, 900);
       } catch (err) {
         console.error(err); msg.textContent = "Gửi chưa được. Kiểm tra mạng rồi thử lại giúp mình nhé.";
       } finally { btn.disabled = false; }
     };
   }
 
+  // ---------- Lời chúc chạy trên đầu màn hình ----------
+  let tickIdx = 0, tickTimer;
+  function tickerShow(i, state) {
+    const t = $("#wishTicker"), list = state.wishes || [];
+    if (!list.length) { t.innerHTML = `<span class="wt-text">💌 Hãy là người đầu tiên gửi lời chúc nhé!</span>`; return; }
+    tickIdx = i % Math.min(list.length, 30);
+    const w = list[tickIdx];
+    t.innerHTML = `<span class="wt-text"><b>${esc(w.name)}:</b> ${esc(w.message)}</span>`;
+  }
+  function startTicker(state) {
+    tickerShow(0, state); clearInterval(tickTimer);
+    tickTimer = setInterval(() => tickerShow(tickIdx + 1, state), 4500);
+  }
+
+  // ---------- Chấm chuyển trang ----------
+  // ---------- Điện thoại: Sổ lưu bút & Mừng cưới nằm trong ngăn kéo cố định ----------
+  function setupDock() {
+    const mq = window.matchMedia("(max-width: 699px)");
+    const wishSec = document.getElementById("wishes-section"), giftSec = document.getElementById("gift-section");
+    const homes = [
+      { sec: wishSec, parent: wishSec.parentNode, next: wishSec.nextSibling, sheet: $("#wishSheet .sheet-body") },
+      { sec: giftSec, parent: giftSec.parentNode, next: giftSec.nextSibling, sheet: $("#giftSheet .sheet-body") },
+    ];
+    const place = () => {
+      homes.forEach((h) => mq.matches ? h.sheet.append(h.sec) : h.parent.insertBefore(h.sec, h.next));
+      if (!mq.matches) document.querySelectorAll("dialog.sheet[open]").forEach((d) => d.close());
+      buildDots();
+    };
+    $("#dockGift").hidden = giftSec.hidden;
+    document.querySelectorAll("[data-open-sheet]").forEach((b) => b.addEventListener("click", () => document.getElementById(b.dataset.openSheet).showModal()));
+    document.querySelectorAll("dialog.sheet").forEach((d) => {
+      d.querySelector("[data-close-sheet]").onclick = () => d.close();
+      d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+    });
+    // Bấm dòng lời chúc đang chạy: mở sổ lưu bút
+    $("#wishTicker").onclick = () => mq.matches ? $("#wishSheet").showModal() : wishSec.scrollIntoView({ behavior: "smooth" });
+    mq.addEventListener("change", place);
+    place();
+  }
+
+  let dotsIO;
+  function buildDots() {
+    const nav = $("#slideDots");
+    const slides = [...document.querySelectorAll("#page > header, #page > .section, #rsvpWishes > .section, #page > footer")].filter((el) => !el.hidden);
+    dotsIO?.disconnect();
+    nav.replaceChildren(...slides.map((sec, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.setAttribute("aria-label", `Phần ${i + 1}`);
+      b.onclick = () => sec.scrollIntoView({ behavior: "smooth" });
+      return b;
+    }));
+    const dots = [...nav.children];
+    const io = dotsIO = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const i = slides.indexOf(en.target);
+        dots.forEach((d, k) => d.classList.toggle("active", k === i));
+      });
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    slides.forEach((s) => io.observe(s));
+    dots[0]?.classList.add("active");
+  }
+
   load()
-    .then((state) => { render(state); bindEvents(state); bindWishForm(state); })
+    .then((state) => { render(state); bindEvents(state); bindWishForm(state); setupDock(); })
     .catch((err) => {
       console.error(err);
       const state = { s: window.WEDDING_DEFAULTS, gallery: [], wishes: [] };
-      render(state); bindEvents(state); bindWishForm(state);
+      render(state); bindEvents(state); bindWishForm(state); setupDock();
     });
 })();

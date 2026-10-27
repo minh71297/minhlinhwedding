@@ -408,7 +408,6 @@ body:not(.opened) .float-sticker{display:none}
 .cbtn:active{transform:scale(.97)}
 
 /* Sổ lưu bút có form riêng */
-.wish-form{margin:1rem 0 1.5rem}
 
 @media (min-width:700px){
   .contacts{grid-template-columns:1fr 1fr}
@@ -477,3 +476,100 @@ body:not(.opened) .float-sticker{display:none}
 .gift-panel[hidden]{display:none}
 .gift-close{position:absolute;top:10px;right:12px;width:34px;height:34px;border-radius:50%;border:0;background:var(--blush);color:var(--cocoa);font-size:1.4rem;cursor:pointer;line-height:1}
 @keyframes giftIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+/* =====================================================
+   THANH LỜI CHÚC TRÊN ĐẦU + HỘP GỬI LỜI CHÚC
+   ===================================================== */
+.wish-bar{
+  position:fixed;z-index:41;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);
+  width:min(560px, calc(100% - 20px));display:flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;border-radius:999px;
+  background:rgba(255,253,251,.92);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:0 0 0 2px var(--line), 0 8px 20px -8px rgba(90,58,46,.35);
+}
+body:not(.opened) .wish-bar{display:none}
+.wish-ticker{all:unset;cursor:pointer;flex:1;min-width:0;font-size:.9rem;color:var(--cocoa)}
+.wish-ticker:focus-visible{outline:2px solid var(--berry);border-radius:8px}
+.wt-text{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:wtIn .45s ease}
+.wt-text b{color:var(--berry)}
+@keyframes wtIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wish-bar .btn-small{padding:9px 14px;flex-shrink:0}
+.wish-open{display:flex;margin:1rem auto 1.5rem}
+@media (min-width:1024px){ .rsvp-wishes .wish-open{margin-left:0} }
+
+.wish-dialog{border:0;border-radius:var(--radius-lg);padding:24px 20px;width:min(440px, calc(100% - 28px));background:var(--milk);color:var(--cocoa);box-shadow:0 30px 80px -20px rgba(90,58,46,.5)}
+.wish-dialog::backdrop{background:rgba(60,36,28,.45)}
+.wish-dialog h3{font-size:1.5rem;text-align:center}
+.wish-dialog .form{margin-top:0}
+.dlg-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+
+/* =====================================================
+   ĐIỆN THOẠI: TỪNG PHẦN LÀ MỘT TRANG TRƯỢT + CHẤM CHỈ VỊ TRÍ
+   ===================================================== */
+.slide-dots{display:none}
+@media (max-width:699px){
+  html{scroll-snap-type:y proximity}
+  .hero,#page > .section,.rsvp-wishes > .section,.footer{
+    scroll-snap-align:start;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  }
+  #page > .section,.rsvp-wishes > .section,.footer{padding-top:84px;padding-right:28px}
+  .section[hidden]{display:none}
+  .hero{justify-content:flex-start}
+
+  .slide-dots{
+    display:flex;flex-direction:column;align-items:center;gap:9px;position:fixed;z-index:38;
+    right:6px;top:50%;transform:translateY(-50%);padding:8px 4px;
+  }
+  body:not(.opened) .slide-dots{display:none}
+  .slide-dots button{
+    all:unset;cursor:pointer;width:6px;height:6px;border-radius:999px;background:var(--cocoa-soft);opacity:.45;
+    box-shadow:0 0 0 1.5px rgba(255,255,255,.9);transition:height .25s, opacity .25s, background .25s;
+  }
+  .slide-dots button.active{height:22px;opacity:1;background:var(--berry)}
+  .slide-dots button:focus-visible{outline:2px solid var(--berry);outline-offset:3px}
+}
+@media (prefers-reduced-motion:reduce){ html{scroll-snap-type:none} }
+
+/* =====================================================
+   ĐIỆN THOẠI: THANH CỐ ĐỊNH DƯỚI ĐÁY + NGĂN KÉO
+   ===================================================== */
+.dock,.sheet{display:none}
+@media (max-width:699px){
+  .wish-bar [data-open-wish]{display:none}
+  .wish-bar{padding:10px 16px}
+
+  .dock{
+    display:grid;grid-template-columns:repeat(3,1fr);position:fixed;z-index:42;left:10px;right:10px;
+    bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:6px;border-radius:22px;
+    background:rgba(255,253,251,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    box-shadow:0 0 0 2px var(--line), 0 10px 26px -10px rgba(90,58,46,.4);
+  }
+  .dock:has(#dockGift[hidden]){grid-template-columns:repeat(2,1fr)}
+  body:not(.opened) .dock{display:none}
+  .dock button{all:unset;cursor:pointer;display:grid;justify-items:center;gap:2px;padding:6px 2px;border-radius:16px;font:700 .78rem var(--body);color:var(--cocoa);text-align:center}
+  .dock button[hidden]{display:none}
+  .dock button:active{background:var(--blush)}
+  .dock button:focus-visible{outline:2px solid var(--berry)}
+  .dock-ic{font-size:1.3rem;line-height:1}
+  .dock button[data-open-wish]{background:var(--berry);color:#fff}
+
+  /* Nhạc và sticker nổi đứng trên thanh đáy, nút nhạc gọn lại */
+  .music-ctrl{bottom:calc(84px + env(safe-area-inset-bottom,0px));right:10px}
+  .music-btn{padding:4px}
+  .music-text{display:none}
+  .music-next{width:40px;height:40px}
+  .float-sticker{bottom:calc(84px + env(safe-area-inset-bottom,0px));left:10px;width:64px;height:64px}
+  .footer{padding-bottom:120px}
+
+  /* Ngăn kéo trượt từ dưới lên */
+  .sheet[open]{
+    display:block;position:fixed;inset:auto 0 0 0;margin:0;width:100%;max-width:100%;max-height:86vh;max-height:86svh;
+    border:0;border-radius:26px 26px 0 0;padding:0;background:var(--milk);color:var(--cocoa);overflow:auto;
+    padding-bottom:env(safe-area-inset-bottom,0px);animation:sheetUp .3s ease;
+  }
+  .sheet::backdrop{background:rgba(60,36,28,.45)}
+  .sheet .section{padding:40px 20px 28px;border-top:0!important;min-height:0}
+  .sheet .section::after{content:none!important}
+  .sheet .wishes{max-height:none}
+  .sheet-close{position:sticky;top:10px;float:right;margin:10px 12px 0 0;z-index:2;width:36px;height:36px;border-radius:50%;border:0;background:var(--blush);color:var(--cocoa);font-size:1.5rem;line-height:1;cursor:pointer}
+  @keyframes sheetUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+}

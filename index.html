@@ -107,12 +107,7 @@
     <section class="section" id="wishes-section">
       <h2>Sổ lưu bút</h2>
       <p class="muted">Không cần xác nhận tham dự, bạn vẫn có thể để lại lời chúc cho chúng mình.</p>
-      <form id="wishForm" class="form wish-form" novalidate>
-        <label>Tên của bạn<input name="name" required maxlength="100" autocomplete="name"></label>
-        <label>Lời chúc<textarea name="message" required rows="3" maxlength="1000" placeholder="Chúc hai bạn…"></textarea></label>
-        <button class="btn btn-primary" type="submit">Gửi lời chúc</button>
-        <p class="form-msg" id="wishMsg" role="status"></p>
-      </form>
+      <button class="btn btn-primary wish-open" type="button" data-open-wish>Gửi lời chúc</button>
       <div id="wishes" class="wishes"></div>
     </section>
     </div>
@@ -136,6 +131,43 @@
       <button class="btn btn-ghost" id="shareBtn" type="button">Chia sẻ thiệp</button>
     </footer>
   </main>
+
+  <!-- Thanh lời chúc cố định trên đầu màn hình -->
+  <div class="wish-bar" id="wishBar">
+    <button type="button" class="wish-ticker" id="wishTicker" aria-label="Xem sổ lưu bút"></button>
+    <button type="button" class="btn btn-primary btn-small" data-open-wish>Gửi lời chúc</button>
+  </div>
+
+  <!-- Chấm chuyển trang (điện thoại) -->
+  <nav class="slide-dots" id="slideDots" aria-label="Chuyển nhanh giữa các phần"></nav>
+
+  <!-- Thanh cố định dưới đáy (điện thoại) -->
+  <nav class="dock" id="dock" aria-label="Lời chúc và mừng cưới">
+    <button type="button" data-open-wish><span class="dock-ic" aria-hidden="true">✍️</span>Gửi lời chúc</button>
+    <button type="button" data-open-sheet="wishSheet"><span class="dock-ic" aria-hidden="true">📖</span>Sổ lưu bút</button>
+    <button type="button" data-open-sheet="giftSheet" id="dockGift"><span class="dock-ic" aria-hidden="true">🎁</span>Mừng cưới</button>
+  </nav>
+  <dialog id="wishSheet" class="sheet" aria-label="Sổ lưu bút">
+    <button type="button" class="sheet-close" data-close-sheet aria-label="Đóng">×</button>
+    <div class="sheet-body"></div>
+  </dialog>
+  <dialog id="giftSheet" class="sheet" aria-label="Hộp mừng cưới">
+    <button type="button" class="sheet-close" data-close-sheet aria-label="Đóng">×</button>
+    <div class="sheet-body"></div>
+  </dialog>
+
+  <dialog id="wishDialog" class="wish-dialog" aria-labelledby="wishDlgTitle">
+    <form id="wishForm" class="form" novalidate>
+      <h3 id="wishDlgTitle">Gửi lời chúc</h3>
+      <label>Tên của bạn<input name="name" required maxlength="100" autocomplete="name"></label>
+      <label>Lời chúc<textarea name="message" required rows="4" maxlength="1000" placeholder="Chúc hai bạn…"></textarea></label>
+      <p class="form-msg" id="wishMsg" role="status"></p>
+      <div class="dlg-actions">
+        <button class="btn btn-ghost" type="button" data-close-wish>Đóng</button>
+        <button class="btn btn-primary" type="submit">Gửi lời chúc</button>
+      </div>
+    </form>
+  </dialog>
 
   <img id="floatSticker" class="sticker float-sticker" alt="" hidden>
   <div class="music-ctrl" id="musicCtrl" hidden>
