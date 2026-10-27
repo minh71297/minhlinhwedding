@@ -650,8 +650,9 @@
     const one = list.map((w) => `<div class="chip"><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</div>`).join("");
     track.innerHTML = one;
     const h1 = track.scrollHeight, fh = feed.clientHeight;
-    if (!fh || h1 <= fh) { bookState.period = 0; bookState.off = 0; paintBook(); return; } // ít lời chúc: đứng yên
-    track.innerHTML = one + one;
+    if (!fh || !h1) { bookState.period = 0; bookState.off = 0; paintBook(); return; }
+    // Lặp đủ số lần để luôn kín khung, kể cả khi chỉ có vài lời chúc → trôi vòng liên tục
+    track.innerHTML = one.repeat(Math.max(2, Math.ceil(fh / h1) + 1));
     bookState.period = h1;
     bookState.off = Math.min(0, bookState.off);
     wrapBook(); paintBook();
