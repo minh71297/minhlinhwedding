@@ -319,21 +319,58 @@
   function renderWishes(list) {
     const cards = list.map((w) => `<div class="wish"><strong>${esc(w.name)}</strong><p>${esc(w.message)}</p></div>`).join("");
     $("#wishes").innerHTML = list.length ? cards : `<p class="empty">Hãy là người đầu tiên gửi lời chúc nhé.</p>`;
-    renderPanel(list, cards);
+    renderPanel(list);
   }
 
   // Cột lời chúc bên trái (máy tính): tự cuộn chậm lên trên khi nhiều lời chúc
-  function renderPanel(list, cards) {
+  // Cột sổ lưu bút trên máy tính: chữ trôi liên tục lên trên, lặp vòng không giật
+  const panelState = { off: 0, period: 0, list: [], raf: 0, hover: false, hold: 0, started: false };
+  function renderPanel(list) {
+    panelState.list = list;
+    if (!panelState.resizeBound) {
+      panelState.resizeBound = true;
+      let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => renderPanel(panelState.list), 200); });
+    }
     const track = $("#wpTrack"), feed = $("#wpFeed");
-    track.classList.remove("scrolling");
-    track.innerHTML = list.length ? cards : `<p class="empty">Hãy là người đầu tiên gửi lời chúc nhé.</p>`;
-    requestAnimationFrame(() => {
-      if (list.length && track.scrollHeight > feed.clientHeight + 10) {
-        track.innerHTML = cards + cards;
-        track.style.setProperty("--dur", `${Math.max(20, list.length * 5)}s`);
-        track.classList.add("scrolling");
+    if (!list.length) { track.innerHTML = `<p class="empty">Hãy là người đầu tiên gửi lời chúc nhé.</p>`; panelState.period = 0; panelState.off = 0; track.style.transform = ""; return; }
+    // Màu xen kẽ theo thứ tự lời chúc (không theo vị trí) để chỗ nối vòng không bị lệch màu
+    const one = list.map((w, i) => `<div class="wish${i % 2 ? " alt" : ""}"><strong>${esc(w.name)}</strong><p>${esc(w.message)}</p></div>`).join("");
+    track.innerHTML = one;
+    const h1 = track.scrollHeight, fh = feed.clientHeight;
+    if (!h1 || !fh) { panelState.period = 0; return; } // cột đang ẩn (điện thoại)
+    track.innerHTML = one.repeat(Math.max(2, Math.ceil(fh / h1) + 1));
+    panelState.period = h1;
+    wrapPanel(); paintPanel();
+    startPanel();
+  }
+  function wrapPanel() {
+    const p = panelState.period; if (!p) return;
+    while (panelState.off <= -p) panelState.off += p;
+    while (panelState.off > 0) panelState.off -= p;
+  }
+  function paintPanel() { $("#wpTrack").style.transform = `translate3d(0, ${panelState.off}px, 0)`; }
+  function startPanel() {
+    if (panelState.started) return;
+    panelState.started = true;
+    const feed = $("#wpFeed"), reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    feed.addEventListener("mouseenter", () => (panelState.hover = true));
+    feed.addEventListener("mouseleave", () => { panelState.hover = false; panelState.hold = Date.now(); });
+    feed.addEventListener("wheel", (e) => { e.preventDefault(); panelState.off -= e.deltaY; wrapPanel(); paintPanel(); panelState.hold = Date.now(); }, { passive: false });
+    let dragY = null;
+    feed.addEventListener("pointerdown", (e) => { dragY = e.clientY; feed.setPointerCapture(e.pointerId); });
+    feed.addEventListener("pointermove", (e) => { if (dragY === null) return; panelState.off += e.clientY - dragY; dragY = e.clientY; wrapPanel(); paintPanel(); });
+    const end = () => { dragY = null; panelState.hold = Date.now(); };
+    feed.addEventListener("pointerup", end); feed.addEventListener("pointercancel", end);
+    let last = 0;
+    const step = (t) => {
+      const dt = Math.min(64, t - (last || t)); last = t;
+      if (panelState.period && !panelState.hover && dragY === null && !document.hidden && !reduce.matches && Date.now() - panelState.hold > 1500) {
+        panelState.off -= dt * 0.03; // khoảng 30px mỗi giây
+        wrapPanel(); paintPanel();
       }
-    });
+      panelState.raf = requestAnimationFrame(step);
+    };
+    panelState.raf = requestAnimationFrame(step);
   }
 
   // Trang đầu điện thoại: lời chúc lần lượt nổi lên trên nền ảnh
@@ -778,11 +815,20 @@
     window.addEventListener("resize", () => goTo(pager.i, true));
   }
 
+  // Nút lên đầu trang (máy tính & máy tính bảng)
+  function setupToTop() {
+    const btn = $("#toTop");
+    const update = () => btn.classList.toggle("show", !pager.on && window.scrollY > 600);
+    window.addEventListener("scroll", update, { passive: true });
+    btn.onclick = () => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    update();
+  }
+
   load()
-    .then((state) => { render(state); bindEvents(state); bindWishForm(state); setupPager(); setupDock(); })
+    .then((state) => { render(state); bindEvents(state); bindWishForm(state); setupPager(); setupDock(); setupToTop(); })
     .catch((err) => {
       console.error(err);
       const state = { s: window.WEDDING_DEFAULTS, gallery: [], wishes: [] };
-      render(state); bindEvents(state); bindWishForm(state); setupPager(); setupDock();
+      render(state); bindEvents(state); bindWishForm(state); setupPager(); setupDock(); setupToTop();
     });
 })();

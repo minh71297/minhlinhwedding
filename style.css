@@ -624,9 +624,9 @@ body:not(.opened) .wish-bar{display:none}
             mask-image:linear-gradient(transparent, #000 8%, #000 92%, transparent);
   }
   .wp-track .wish{margin-bottom:12px;background:#fff;box-shadow:0 0 0 2px var(--line)}
-  .wp-track .wish:nth-child(even){background:#FFF8E6}
-  .wp-track.scrolling{animation:feedUp var(--dur,40s) linear infinite}
-  .wp-feed:hover .wp-track{animation-play-state:paused}
+  .wp-track .wish.alt{background:#FFF8E6}
+  .wp-track{will-change:transform}
+  .wp-feed{cursor:grab;user-select:none;touch-action:none}
   @keyframes feedUp{to{transform:translateY(-50%)}}
 
   .page{margin-left:33.333vw}
@@ -641,7 +641,6 @@ body:not(.opened) .wish-bar{display:none}
   .hero-sticker{width:160px;height:160px;right:-80px}
   .hero-photo:has(.hero-sticker:not([hidden])) + .hero-text{padding:56px 36px 56px 100px}
 }
-@media (prefers-reduced-motion:reduce){ .wp-track.scrolling{animation:none} }
 
 /* =====================================================
    ĐIỆN THOẠI (bản mới): lời chúc chạy + cột nút + ô gửi + sổ lưu bút
@@ -745,3 +744,17 @@ body:not(.opened) .wish-bar{display:none}
   }
   .book-send:active{transform:scale(.98)}
 }
+
+/* Nút lên đầu trang (máy tính & máy tính bảng) */
+.to-top{
+  position:fixed;z-index:40;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:48px;height:48px;border-radius:50%;border:3px solid #fff;background:var(--cocoa);color:#fff;cursor:pointer;
+  display:grid;place-items:center;box-shadow:0 6px 16px rgba(90,58,46,.3);
+  opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .25s, transform .25s, visibility .25s, background .2s;
+}
+.to-top.show{opacity:1;visibility:visible;transform:none}
+.to-top:hover{background:var(--berry)}
+.to-top:focus-visible{outline:3px solid var(--berry);outline-offset:3px}
+body:not(.opened) .to-top{display:none}
+.music-ctrl[hidden] ~ .to-top,body:has(#musicCtrl[hidden]) .to-top{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+@media (max-width:699px){ .to-top{display:none} }
