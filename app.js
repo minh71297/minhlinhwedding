@@ -337,24 +337,40 @@
   }
 
   // Trang đầu điện thoại: lời chúc lần lượt nổi lên trên nền ảnh
-  let bubTimer, bubIdx = 0;
-  function bubbleShow(w) {
-    const box = $("#mFeed");
-    const el = document.createElement("div");
-    el.className = "bubble";
-    el.innerHTML = `<span><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</span>`;
-    box.append(el);
-    const items = [...box.children].filter((x) => !x.classList.contains("out"));
-    if (items.length > 6) { const old = items[0]; old.classList.add("out"); setTimeout(() => old.remove(), 500); }
+  // Lời chúc trôi liên tục lên trên (điện thoại), lặp vòng không giật
+  const feedState = { off: 0, period: 0, raf: 0, last: 0 };
+  function buildFeed(state, fromBottom) {
+    const feed = $("#mFeed"), track = $("#mTrack");
+    const list = (state.wishes || []).slice(0, 40);
+    if (!list.length) { track.innerHTML = `<div class="bubble"><span>💌 Hãy là người đầu tiên gửi lời chúc nhé!</span></div>`; feedState.period = 0; feedState.off = 0; track.style.transform = ""; return; }
+    const one = list.map((w) => `<div class="bubble"><span><b class="bn">${esc(w.name)}</b> ${esc(w.message)}</span></div>`).join("");
+    track.innerHTML = one;
+    const h1 = track.scrollHeight || 1, fh = feed.clientHeight || 140;
+    const copies = Math.max(2, Math.ceil(fh / h1) + 1);
+    track.innerHTML = one.repeat(copies);
+    feedState.period = h1;
+    if (fromBottom) feedState.off = fh;
+    track.style.transform = `translate3d(0, ${feedState.off}px, 0)`;
   }
+  function bubbleShow() { /* lời chúc mới: dựng lại dòng chạy, lời mới nhất vào từ phía dưới */ buildFeed(window.__wstate, true); }
   function startBubbles(state) {
-    clearInterval(bubTimer);
-    const tick = () => {
-      if (document.hidden || !state.wishes.length) return;
-      if (!window.matchMedia("(max-width: 699px)").matches) return;
-      bubbleShow(state.wishes[bubIdx % Math.min(state.wishes.length, 30)]); bubIdx++;
+    window.__wstate = state;
+    const mq = window.matchMedia("(max-width: 699px)");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    buildFeed(state, true);
+    mq.addEventListener("change", () => buildFeed(state, true));
+    cancelAnimationFrame(feedState.raf);
+    const step = (t) => {
+      const dt = Math.min(64, t - (feedState.last || t)); feedState.last = t;
+      if (mq.matches && !document.hidden && !reduce.matches && feedState.period &&
+          !document.documentElement.classList.contains("feed-off")) {
+        feedState.off -= dt * 0.022; // khoảng 22px mỗi giây
+        if (feedState.off <= -feedState.period) feedState.off += feedState.period;
+        $("#mTrack").style.transform = `translate3d(0, ${feedState.off}px, 0)`;
+      }
+      feedState.raf = requestAnimationFrame(step);
     };
-    tick(); bubTimer = setInterval(tick, 2800);
+    feedState.raf = requestAnimationFrame(step);
   }
 
   let cdTimer;

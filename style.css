@@ -650,30 +650,36 @@ body:not(.opened) .wish-bar{display:none}
 @media (max-width:699px){
   .dock,.music-ctrl{display:none!important}
   html.paged #wishes-section{display:none}
-  .slide-dots{top:36%}
+  :root{--reserve:calc(214px + env(safe-area-inset-bottom,0px))}
+  .slide-dots{top:calc((100vh - var(--reserve)) / 2)}
+  html.paged body{background:var(--milk)}
   .float-sticker{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px));left:10px;width:58px;height:58px}
 
-  /* Lời chúc chạy (hiện ở trang đầu) */
+  /* Lời chúc trôi liên tục ở vùng dành riêng phía dưới mọi trang */
   .m-feed{
-    display:flex;flex-direction:column;justify-content:flex-end;gap:7px;position:fixed;z-index:36;
-    left:12px;right:66px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-height:44vh;overflow:hidden;pointer-events:none;
-    -webkit-mask-image:linear-gradient(transparent, #000 22%);mask-image:linear-gradient(transparent, #000 22%);
+    display:block;position:fixed;z-index:36;left:60px;right:60px;
+    bottom:calc(72px + env(safe-area-inset-bottom,0px));height:136px;overflow:hidden;pointer-events:none;
+    -webkit-mask-image:linear-gradient(transparent, #000 28%, #000 88%, transparent);
+            mask-image:linear-gradient(transparent, #000 28%, #000 88%, transparent);
     transition:opacity .3s;
   }
-  html:not(.on-first) .m-feed,html.feed-off .m-feed,body:not(.opened) .m-feed{opacity:0;visibility:hidden}
-  .m-feed .bubble{align-self:flex-start;flex-shrink:0;border-radius:16px;padding:8px 12px;background:rgba(45,26,20,.5);font-weight:600}
+  html.feed-off .m-feed,body:not(.opened) .m-feed{opacity:0;visibility:hidden}
+  .m-track{display:flex;flex-direction:column;align-items:center;will-change:transform}
+  .m-feed .bubble{flex-shrink:0;margin-bottom:7px;max-width:100%;border-radius:16px;padding:7px 12px;background:rgba(45,26,20,.55);font-weight:600;font-size:.86rem;text-align:center;animation:none}
   .m-feed .bubble span{-webkit-line-clamp:3}
-  .bn{font-family:var(--body);font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#FFC9D5;margin-right:6px}
+  .bn{font-family:var(--body);font-size:.66rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#FFC9D5;margin-right:6px}
 
-  /* Cột nút tròn bên phải */
+  /* Hai cột nút: trái = sổ lưu bút + ẩn/hiện lời chúc; phải = về đầu trang + nhạc */
   .m-side{
-    display:flex;flex-direction:column;gap:10px;position:fixed;z-index:37;right:10px;
-    bottom:calc(78px + env(safe-area-inset-bottom,0px));
+    display:flex;flex-direction:column;justify-content:flex-end;gap:8px;position:fixed;z-index:37;
+    bottom:calc(72px + env(safe-area-inset-bottom,0px));height:136px;
   }
+  .m-left{left:10px}
+  .m-right{right:10px}
   body:not(.opened) .m-side{display:none}
   .m-btn{
-    width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;
-    background:rgba(45,26,20,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;
+    background:rgba(45,26,20,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
     border:1.5px solid rgba(255,255,255,.65);box-shadow:0 4px 12px rgba(45,26,20,.25);
   }
   .m-btn[hidden]{display:none}
@@ -701,7 +707,12 @@ body:not(.opened) .wish-bar{display:none}
   #mInput::placeholder{color:rgba(255,255,255,.8);font-weight:500}
   #mInput:focus{outline:none;border-color:#fff;background:rgba(45,26,20,.7)}
 
-  html.paged .slide.section,html.paged .slide.footer{padding-bottom:90px;padding-right:62px}
+  /* Mọi trang (trừ trang ảnh đầu) chừa vùng dưới cho lời chúc; nội dung căn giữa phần còn lại */
+  html.paged .slide.section,html.paged .slide.footer{padding:44px 26px calc(var(--reserve) + 6px) 26px}
+  html.paged .slide:not(.hero){
+    -webkit-mask-image:linear-gradient(#000 calc(100% - var(--reserve) + 6px), transparent calc(100% - var(--reserve) + 30px));
+            mask-image:linear-gradient(#000 calc(100% - var(--reserve) + 6px), transparent calc(100% - var(--reserve) + 30px));
+  }
 
   /* Sổ lưu bút: ngăn kéo cao gần full màn hình */
   .book[open]{
