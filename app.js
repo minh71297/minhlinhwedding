@@ -74,8 +74,7 @@
     const { s, gallery, wishes } = state;
     const wDate = toDate(s.weddingDate);
     const names = `${s.couple.groomName} & ${s.couple.brideName}`;
-    document.title = `Thiệp cưới ${names}`;
-    document.querySelector('meta[property="og:title"]').content = `Thiệp cưới ${names}`;
+    document.title = `${names} · Thiệp cưới`;
 
     // Bìa
     const guest = new URLSearchParams(location.search).get("to");
