@@ -11,6 +11,8 @@
   const cssUrl = (u) => safeUrl(u).replace(/['"()\\\s]/g, (ch) => encodeURIComponent(ch));
   // Bỏ chữ "Ông"/"Bà" nếu admin đã gõ sẵn, tránh thành "Ông: Ông ..."
   const stripTitle = (name, t) => String(name || "").trim().replace(new RegExp("^" + t + "[\\s:.]+", "i"), "");
+  // Vị trí căn ảnh theo chiều dọc (0 = sát trên, 100 = sát dưới), chỉnh trong admin
+  const posY = (v, def) => { const n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.max(0, Math.min(100, n)) : def; };
   const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
   function merge(base, over) {
     if (!isObj(over)) return base;
@@ -89,7 +91,7 @@
 
     // Hero
     const hero = safeUrl(s.hero.image);
-    if (hero) $("#heroPhoto").style.backgroundImage = `url("${cssUrl(hero)}")`;
+    if (hero) { $("#heroPhoto").style.backgroundImage = `url("${cssUrl(hero)}")`; $("#heroPhoto").style.backgroundPosition = `center ${posY(s.hero.imagePos, 30)}%`; }
     $("#heroTitle").textContent = s.hero.title;
     $("#groomName").textContent = s.couple.groomName;
     $("#brideName").textContent = s.couple.brideName;
@@ -106,7 +108,7 @@
     $("#inviteText").textContent = s.invite;
     const person = (p, role, fam, sticker) => `
       <article class="person">
-        <div class="person-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}')"` : ""} role="img" aria-label="${esc(p.fullName)}">
+        <div class="person-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}');background-position:center ${posY(p.photoPos, 10)}%"` : ""} role="img" aria-label="${esc(p.fullName)}">
           ${safeUrl(sticker) ? `<img class="sticker person-sticker" src="${esc(safeUrl(sticker))}" alt="">` : ""}
         </div>
         <p class="person-role">${role}</p>
@@ -120,38 +122,58 @@
       </article>`;
     $("#couple").innerHTML = person(s.groom, "Chú rể", "Con ông bà", s.decor.groomSticker) + person(s.bride, "Cô dâu", "Con ông bà", s.decor.brideSticker);
 
-    // Đếm ngược + lịch
+    // Đếm ngược
     startCountdown(wDate);
-    const mainEvent = (s.events || []).find((e) => /tiệc/i.test(e.title)) || (s.events || [])[0];
-    if (wDate) {
-      const end = new Date(wDate.getTime() + 3 * 3600e3);
-      const q = new URLSearchParams({
-        action: "TEMPLATE", text: `Đám cưới ${names}`, dates: `${gcalStamp(wDate)}/${gcalStamp(end)}`,
-        ctz: "Asia/Ho_Chi_Minh", location: mainEvent ? `${mainEvent.place}, ${mainEvent.address}` : "", details: location.href.split("?")[0],
-      });
-      $("#calBtn").href = "https://calendar.google.com/calendar/render?" + q;
-    } else $("#calBtn").hidden = true;
 
     // Sự kiện
     const events = s.events || [];
     hideSection("events-section", !events.length);
-    $("#events").innerHTML = events.map((e) => {
+    // Thẻ sự kiện gọn: cột giờ/ngày bên trái, thông tin bên phải; bản đồ chỉ mở khi bấm
+    $("#events").innerHTML = events.map((e, i) => {
       const d = toDate(e.time);
       const embed = mapEmbedSrc(e.mapEmbed);
       const dir = safeUrl(e.mapLink) || (e.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.address)}` : "");
+      const p = d ? vnParts(d) : null;
       return `<article class="event">
         ${safeUrl(e.image) ? `<div class="event-img" style="background-image:url('${cssUrl(e.image)}')"></div>` : ""}
         <div class="event-body">
-          <h3>${esc(e.title)}</h3>
-          ${d ? `<p class="event-time">${esc(fmtFull(d))}</p>` : ""}
-          ${e.lunar ? `<p class="event-lunar">${esc(e.lunar)}</p>` : ""}
-          ${e.place ? `<p class="event-place">${esc(e.place)}</p>` : ""}
-          ${e.address ? `<p class="event-address">${esc(e.address)}</p>` : ""}
-          <div class="event-actions">${dir ? `<a class="btn btn-primary btn-small" href="${esc(dir)}" target="_blank" rel="noopener">Chỉ đường</a>` : ""}</div>
+          <div class="event-top">
+            ${p ? `<div class="event-when"><span class="ew-time">${p.hour}:${p.minute}</span><span class="ew-day">${p.day}.${p.month}</span><span class="ew-wd">${WEEKDAYS[p.wd]}</span></div>` : ""}
+            <div class="event-info">
+              <h3>${esc(e.title)}</h3>
+              ${e.lunar ? `<p class="event-lunar">${esc(e.lunar)}</p>` : ""}
+              ${e.place ? `<p class="event-place">${esc(e.place)}</p>` : ""}
+              ${e.address ? `<p class="event-address">${esc(e.address)}</p>` : ""}
+            </div>
+          </div>
+          <div class="event-actions">
+            ${dir ? `<a class="btn btn-primary btn-small" href="${esc(dir)}" target="_blank" rel="noopener">Chỉ đường</a>` : ""}
+            ${embed ? `<button type="button" class="btn btn-ghost btn-small" data-map="${i}" aria-expanded="false">Xem bản đồ</button>` : ""}
+          </div>
         </div>
-        ${embed ? `<iframe class="event-map" src="${esc(embed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Bản đồ ${esc(e.title)}"></iframe>` : ""}
+        ${embed ? `<div class="event-map-wrap" id="map${i}" data-src="${esc(embed)}" data-title="Bản đồ ${esc(e.title)}" hidden></div>` : ""}
       </article>`;
     }).join("");
+    // Bản đồ: tải khi bấm (đỡ nặng trang)
+    $("#events").onclick = (ev) => {
+      const b = ev.target.closest("[data-map]"); if (!b) return;
+      const wrap = document.getElementById("map" + b.dataset.map);
+      if (!wrap.firstChild) {
+        const f = document.createElement("iframe");
+        f.className = "event-map"; f.src = wrap.dataset.src; f.title = wrap.dataset.title; f.loading = "lazy";
+        f.referrerPolicy = "no-referrer-when-downgrade"; wrap.append(f);
+      }
+      const open = wrap.hidden; wrap.hidden = !open;
+      b.setAttribute("aria-expanded", open); b.textContent = open ? "Ẩn bản đồ" : "Xem bản đồ";
+    };
+    // Chấm chỉ vị trí khi vuốt ngang (điện thoại)
+    const evDots = $("#eventsDots");
+    evDots.innerHTML = events.length > 1 ? events.map((_, i) => `<span${i ? "" : ' class="on"'}></span>`).join("") : "";
+    $("#events").onscroll = () => {
+      const el = $("#events"), w = el.firstElementChild?.offsetWidth || 1;
+      const k = Math.round(el.scrollLeft / (w + 12));
+      [...evDots.children].forEach((d, j) => d.classList.toggle("on", j === k));
+    };
 
     // RSVP chọn sự kiện
     const pick = $("#eventPick");
@@ -288,7 +310,7 @@
         </div>` : "";
       return `<article class="contact-card">
         <span class="hi hi-corner tl" aria-hidden="true">囍</span><span class="hi hi-corner br" aria-hidden="true">囍</span>
-        <div class="contact-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}')"` : ""}></div>
+        <div class="contact-photo" ${safeUrl(p.photo) ? `style="background-image:url('${cssUrl(p.photo)}');background-position:center ${posY(p.photoPos, 10)}%"` : ""}></div>
         <p class="person-role">${role}</p>
         <h3>${esc(p.fullName)}</h3>
         ${p.phone ? `<p class="contact-phone">${esc(p.phone)}</p>` : ""}
