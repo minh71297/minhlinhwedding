@@ -796,20 +796,10 @@ body:not(.opened) .to-top{display:none}
 .event-info h3{margin-bottom:2px}
 .event-place{margin-top:.35rem}
 .event-address{font-size:.92rem;line-height:1.45}
-.events-dots{display:none}
-
 @media (max-width:699px){
-  /* Nhiều sự kiện: vuốt ngang từng thẻ thay vì xếp chồng dài */
-  .events{grid-auto-flow:column;grid-auto-columns:88%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
-    margin:0 -26px;padding:4px 26px 6px;scroll-padding:0 26px;scrollbar-width:none;overscroll-behavior-x:contain}
-  .events::-webkit-scrollbar{display:none}
-  .events:has(> .event:only-child){grid-auto-columns:100%}
-  .event{scroll-snap-align:start}
+  /* Các sự kiện xếp trên dưới, thẻ gọn */
+  .events{gap:12px}
   .event-body{padding:16px}
   .event-img{aspect-ratio:21/9}
   .event-actions{margin-top:12px}
-  .events-dots{display:flex;justify-content:center;gap:6px;margin-top:12px}
-  .events-dots:empty{display:none}
-  .events-dots span{width:7px;height:7px;border-radius:9px;background:var(--line);transition:width .25s, background .25s}
-  .events-dots span.on{width:20px;background:var(--berry)}
 }

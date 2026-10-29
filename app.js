@@ -166,14 +166,6 @@
       const open = wrap.hidden; wrap.hidden = !open;
       b.setAttribute("aria-expanded", open); b.textContent = open ? "Ẩn bản đồ" : "Xem bản đồ";
     };
-    // Chấm chỉ vị trí khi vuốt ngang (điện thoại)
-    const evDots = $("#eventsDots");
-    evDots.innerHTML = events.length > 1 ? events.map((_, i) => `<span${i ? "" : ' class="on"'}></span>`).join("") : "";
-    $("#events").onscroll = () => {
-      const el = $("#events"), w = el.firstElementChild?.offsetWidth || 1;
-      const k = Math.round(el.scrollLeft / (w + 12));
-      [...evDots.children].forEach((d, j) => d.classList.toggle("on", j === k));
-    };
 
     // RSVP chọn sự kiện
     const pick = $("#eventPick");
