@@ -161,10 +161,7 @@
     // Lịch trình + dress code
     const sch = s.schedule || [];
     $("#schedule").innerHTML = sch.map((x) => `<li><time>${esc(x.time)}</time><span>${esc(x.title)}</span></li>`).join("");
-    const colors = String(s.dressCode?.colors || "").split(",").map((c) => c.trim()).filter((c) => /^#[0-9a-f]{3,8}$/i.test(c));
-    $("#dresscode").innerHTML = s.dressCode?.text || colors.length
-      ? `<h3>Trang phục gợi ý</h3><p>${esc(s.dressCode.text)}</p><div class="swatches">${colors.map((c) => `<span class="swatch" style="background:${c}"></span>`).join("")}</div>` : "";
-    hideSection("schedule-section", !sch.length && !colors.length && !s.dressCode?.text);
+    hideSection("schedule-section", !sch.length);
     setSticker($("#dividerSticker"), s.decor.dividerSticker);
 
     // Câu chuyện
