@@ -234,7 +234,7 @@
 
     // Sticker gắn trên đầu từng mục
     const SECTION_STICKERS = {
-      inviteSticker: "invite", countdownSticker: "countdown-section", eventsSticker: "events-section",
+      inviteSticker: "invite", eventsSticker: "events-section",
       scheduleSticker: "schedule-section", storySticker: "story-section", albumSticker: "album-section",
       wishesSticker: "wishes-section", giftSticker: "gift-section", contactSticker: "contact-section",
     };
@@ -410,17 +410,26 @@
   }
 
   let cdTimer;
+  // Đếm ngược hiện ở trang đầu: 4 ô dưới ngày cưới (máy tính) và dải nhỏ trên ảnh (điện thoại)
   function startCountdown(target) {
-    const box = $("#countdown");
-    if (!target) { box.innerHTML = ""; return; }
+    const boxes = $("#heroCountdown"), chip = $("#heroCd");
+    if (!target) { boxes.hidden = true; chip.hidden = true; return; }
+    const dateTxt = fmtDate(target);
+    const pad = (n) => String(n).padStart(2, "0");
     const tick = () => {
       let diff = Math.max(0, target - Date.now());
-      if (diff === 0) { box.innerHTML = `<p class="cd-done">Hôm nay là ngày chung đôi!</p>`; clearInterval(cdTimer); return; }
+      if (diff === 0) {
+        boxes.innerHTML = `<p class="cd-done">Hôm nay là ngày chung đôi!</p>`;
+        chip.innerHTML = `<span class="hc-date">${dateTxt}</span><span class="hc-sep"></span><span>Hôm nay là ngày chung đôi!</span>`;
+        clearInterval(cdTimer); return;
+      }
       const d = Math.floor(diff / 864e5); diff -= d * 864e5;
       const h = Math.floor(diff / 36e5); diff -= h * 36e5;
       const m = Math.floor(diff / 6e4); const sec = Math.floor((diff - m * 6e4) / 1e3);
-      box.innerHTML = [[d, "ngày"], [h, "giờ"], [m, "phút"], [sec, "giây"]]
-        .map(([n, l]) => `<div class="cd-box"><span class="cd-num">${String(n).padStart(2, "0")}</span><span class="cd-label">${l}</span></div>`).join("");
+      boxes.innerHTML = [[d, "ngày"], [h, "giờ"], [m, "phút"], [sec, "giây"]]
+        .map(([n, l]) => `<div class="cd-box"><span class="cd-num">${pad(n)}</span><span class="cd-label">${l}</span></div>`).join("");
+      chip.innerHTML = `<span class="hc-date">${dateTxt}</span><span class="hc-sep"></span>`
+        + `<span>Còn <b>${d}</b> ngày <b>${pad(h)}</b>:<b>${pad(m)}</b>:<b>${pad(sec)}</b></span>`;
     };
     tick(); clearInterval(cdTimer); cdTimer = setInterval(tick, 1000);
   }

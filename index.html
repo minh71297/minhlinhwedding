@@ -58,12 +58,14 @@
     <header class="hero">
       <div class="hero-photo" id="heroPhoto">
         <img id="heroSticker" class="sticker hero-sticker" alt="" hidden>
+        <div class="hero-cd" id="heroCd" aria-label="Đếm ngược tới ngày cưới"></div>
       </div>
       <div class="hero-text">
         <span class="hi hero-hi" aria-hidden="true">囍</span>
         <p class="hero-title" id="heroTitle"></p>
         <h1 class="names"><span id="groomName"></span><span class="amp">&amp;</span><span id="brideName"></span></h1>
         <p class="hero-date" id="heroDate"></p>
+        <div class="hero-countdown" id="heroCountdown" aria-label="Đếm ngược tới ngày cưới"></div>
       </div>
     </header>
 
@@ -74,15 +76,10 @@
       <div class="couple" id="couple"></div>
     </section>
 
-    <section class="section countdown-wrap" id="countdown-section">
-      <h2>Còn bao lâu nữa?</h2>
-      <div class="countdown" id="countdown"></div>
-      <a class="btn btn-ghost" id="calBtn" target="_blank" rel="noopener">Thêm vào Google Lịch</a>
-    </section>
-
     <section class="section" id="events-section">
       <h2>Tiệc cưới &amp; địa điểm</h2>
       <div id="events" class="events"></div>
+      <div class="events-cal"><a class="btn btn-ghost" id="calBtn" target="_blank" rel="noopener">Thêm vào Google Lịch</a></div>
     </section>
 
     <section class="section" id="schedule-section">
