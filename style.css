@@ -804,9 +804,30 @@ body:not(.opened) .to-top{display:none}
   .event-actions{margin-top:12px}
 }
 
-/* Album: nút Xem thêm */
-.album button[hidden]{display:none}
-.album-more{display:flex;justify-content:center;margin-top:18px}
-.album-more .btn[hidden]{display:none}
-.album button.pop{animation:albumPop .4s ease both}
-@keyframes albumPop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+/* =====================================================
+   ALBUM DẠNG TRÌNH CHIẾU
+   ===================================================== */
+.carousel{position:relative;max-width:1000px;margin:0 auto}
+.car-viewport{overflow:hidden;border-radius:20px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.car-track{--vis:1;display:flex;column-gap:12px;transition:transform 1.1s cubic-bezier(.45,0,.2,1);will-change:transform}
+.car-slide{
+  flex:0 0 calc((100% - 12px * (var(--vis) - 1)) / var(--vis));aspect-ratio:4/5;border:0;padding:0;cursor:zoom-in;
+  border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#F7C6D0,#FFE3A3);
+}
+.car-slide img{width:100%;height:100%;object-fit:cover;object-position:center 22%;display:block;-webkit-user-drag:none;pointer-events:none}
+.car-nav{
+  position:absolute;top:calc(50% - 24px);transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(255,253,251,.88);color:var(--cocoa);font-size:1.8rem;line-height:1;box-shadow:0 6px 16px rgba(90,58,46,.25);
+  display:grid;place-items:center;padding-bottom:4px;
+}
+.car-nav[hidden]{display:none}
+.car-prev{left:10px}.car-next{right:10px}
+.car-nav:hover{background:#fff;color:var(--berry)}
+.car-nav:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+.car-foot{display:flex;align-items:center;gap:12px;margin-top:14px;justify-content:center}
+.car-count{font-family:var(--display);font-weight:700;color:var(--cocoa-soft);min-width:56px;text-align:right;font-variant-numeric:tabular-nums}
+.car-bar{width:min(220px,50%);height:4px;border-radius:9px;background:var(--line);overflow:hidden}
+.car-bar[hidden]{display:none}
+.car-bar span{display:block;height:100%;width:0;background:var(--berry);border-radius:9px;transition:width .6s ease}
+@media (min-width:700px){ .car-slide{aspect-ratio:3/4} }
+@media (prefers-reduced-motion:reduce){ .car-track{transition:none} }

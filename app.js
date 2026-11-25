@@ -206,11 +206,8 @@
 
     // Album
     const photos = gallery.filter((g) => safeUrl(g.url));
-    $("#album").innerHTML = photos.length
-      ? photos.map((g, i) => `<button type="button" data-i="${i}" aria-label="Xem ảnh ${i + 1}"><img src="${esc(safeUrl(g.url))}" alt="${esc(g.caption || "")}" loading="lazy"></button>`).join("")
-      : `<p class="empty">Ảnh cưới sẽ sớm được cập nhật.</p>`;
     setupLightbox(photos);
-    setupAlbumMore(photos.length);
+    setupCarousel(photos);
 
     // RSVP
     hideSection("rsvp-section", s.rsvp?.enabled === false);
@@ -464,28 +461,77 @@
     tick(); clearInterval(cdTimer); cdTimer = setInterval(tick, 1000);
   }
 
-  // Album: hiện trước một ít, bấm "Xem thêm" để hiện tiếp (ảnh ẩn chưa tải nên trang nhẹ)
-  function setupAlbumMore(total) {
-    const btn = $("#albumMore"), sec = document.getElementById("album-section");
-    const batch = () => (window.matchMedia("(min-width: 1024px)").matches ? 10 : 4);
-    let shown = batch();
-    const apply = (from) => {
-      [...$("#album").querySelectorAll("button[data-i]")].forEach((b, i) => {
-        b.hidden = i >= shown;
-        if (from !== undefined && i >= from && i < shown) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
+  // Album dạng trình chiếu: tự trượt chậm, vuốt/bấm mũi tên để chuyển, chạm ảnh để xem lớn
+  function setupCarousel(photos) {
+    const view = $("#carView"), track = $("#carTrack"), n = photos.length;
+    const nav = [$("#carPrev"), $("#carNext")];
+    if (!n) {
+      track.innerHTML = `<p class="empty">Ảnh cưới sẽ sớm được cập nhật.</p>`;
+      nav.forEach((b) => (b.hidden = true)); $("#carCount").textContent = ""; $(".car-bar").hidden = true; return;
+    }
+    const perView = () => (window.matchMedia("(min-width: 1024px)").matches ? 3 : window.matchMedia("(min-width: 700px)").matches ? 2 : 1);
+    const slide = (g, i, clone) => `<button type="button" class="car-slide" data-i="${i}" ${clone ? 'aria-hidden="true" tabindex="-1"' : `aria-label="Xem ảnh ${i + 1}"`}><img data-src="${esc(safeUrl(g.url))}" alt="${esc(g.caption || "")}" decoding="async"></button>`;
+    let vis = 1, idx = 0, timer, paused = false, inView = true;
+    const build = () => {
+      vis = Math.min(perView(), n);
+      track.style.setProperty("--vis", vis);
+      // Thêm bản sao vài ảnh đầu ở cuối để vòng lặp nối liền
+      track.innerHTML = photos.map((g, i) => slide(g, i)).join("") + (n > vis ? photos.slice(0, vis).map((g, i) => slide(g, i, true)).join("") : "");
+      nav.forEach((b) => (b.hidden = n <= vis));
+      go(idx % n, true);
+    };
+    const step = () => { const f = track.firstElementChild; return f ? f.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 12) : 0; };
+    const loadNear = () => {
+      [...track.children].forEach((b, k) => {
+        if (k >= idx - 1 && k <= idx + vis + 1) { const im = b.firstElementChild; if (im && !im.src) im.src = im.dataset.src; }
       });
-      const left = total - shown;
-      btn.hidden = total <= batch();
-      btn.textContent = left > 0 ? `Xem thêm ảnh (${left})` : "Thu gọn album";
-      btn.setAttribute("aria-expanded", left <= 0);
     };
-    btn.onclick = () => {
-      if (shown >= total) {
-        shown = batch(); apply();
-        if (pager.on) sec.scrollTop = 0; else sec.scrollIntoView({ behavior: "smooth" });
-      } else { const from = shown; shown = Math.min(total, shown + batch()); apply(from); }
+    const paint = (instant, dx = 0) => {
+      track.style.transition = instant ? "none" : "";
+      track.style.transform = `translate3d(${-idx * step() + dx}px,0,0)`;
     };
-    apply();
+    const info = () => {
+      const k = idx % n;
+      $("#carCount").textContent = `${k + 1} / ${n}`;
+      $("#carBar").style.width = `${((k + 1) / n) * 100}%`;
+    };
+    function go(i, instant) {
+      if (n <= vis) { idx = 0; paint(true); info(); loadNear(); return; }
+      if (i < 0) { idx = n; paint(true); void track.offsetWidth; i = n - 1; } // lùi từ ảnh đầu: nhảy sang bản sao rồi lùi
+      idx = i; paint(instant); info(); loadNear();
+    }
+    track.addEventListener("transitionend", () => { if (idx >= n) { idx -= n; paint(true); loadNear(); } });
+    const next = () => go(idx + 1), prev = () => go(idx - 1);
+    $("#carNext").onclick = () => { next(); restart(); };
+    $("#carPrev").onclick = () => { prev(); restart(); };
+
+    // Tự trượt chậm; dừng khi rê chuột, khi đang vuốt, khi không nhìn thấy album
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const tick = () => { if (!paused && inView && !document.hidden && !reduce.matches && !$("#lightbox").open && n > vis) next(); };
+    const restart = () => { clearInterval(timer); timer = setInterval(tick, 4000); };
+    view.parentElement.addEventListener("mouseenter", () => (paused = true));
+    view.parentElement.addEventListener("mouseleave", () => (paused = false));
+    new IntersectionObserver((es) => es.forEach((e) => (inView = e.isIntersecting)), { threshold: 0.3 }).observe(view);
+
+    // Vuốt ngang / kéo chuột
+    let x0 = null, y0 = 0, dx = 0, dragging = false;
+    view.addEventListener("pointerdown", (e) => { if (n <= vis) return; x0 = e.clientX; y0 = e.clientY; dx = 0; dragging = false; paused = true; });
+    view.addEventListener("pointermove", (e) => {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      if (!dragging && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(e.clientY - y0)) { dragging = true; try { view.setPointerCapture(e.pointerId); } catch {} }
+      if (dragging) paint(true, dx);
+    });
+    const end = (e) => {
+      if (x0 === null) return;
+      if (dragging) { if (dx < -40) next(); else if (dx > 40) prev(); else paint(); view.dataset.dragged = "1"; setTimeout(() => delete view.dataset.dragged, 50); }
+      x0 = null; dragging = false; paused = e.pointerType === "mouse" && view.parentElement.matches(":hover"); restart();
+    };
+    view.addEventListener("pointerup", end); view.addEventListener("pointercancel", end);
+    view.addEventListener("click", (e) => { if (view.dataset.dragged) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+    let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 200); });
+    build(); restart();
   }
 
   function setupLightbox(photos) {

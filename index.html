@@ -120,8 +120,12 @@
 
     <section class="section" id="album-section">
       <h2>Album ảnh</h2>
-      <div id="album" class="album"></div>
-      <div class="album-more"><button type="button" class="btn btn-ghost" id="albumMore" hidden></button></div>
+      <div id="album" class="carousel" aria-roledescription="carousel" aria-label="Album ảnh cưới">
+        <div class="car-viewport" id="carView"><div class="car-track" id="carTrack"></div></div>
+        <button type="button" class="car-nav car-prev" id="carPrev" aria-label="Ảnh trước">‹</button>
+        <button type="button" class="car-nav car-next" id="carNext" aria-label="Ảnh sau">›</button>
+        <div class="car-foot"><span class="car-count" id="carCount" aria-live="polite"></span><div class="car-bar"><span id="carBar"></span></div></div>
+      </div>
     </section>
 
     <div class="rsvp-wishes" id="rsvpWishes">
