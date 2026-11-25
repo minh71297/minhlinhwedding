@@ -52,13 +52,15 @@
   async function load() {
     let data = {}, gallery = [], wishes = [];
     if (sb) {
-      const [s, g, w] = await Promise.all([
-        sb.from("site_settings").select("data").eq("id", 1).maybeSingle(),
-        sb.from("gallery").select("url,caption,sort_order,created_at").order("sort_order").order("created_at"),
-        sb.from("wishes").select("name,message,created_at").order("created_at", { ascending: false }).limit(200),
-      ]);
+      // Gọi cả 3 cùng lúc, nhưng nội dung thiệp về tới là vẽ bìa ngay, không chờ album & lời chúc
+      const pS = sb.from("site_settings").select("data").eq("id", 1).maybeSingle();
+      const pG = sb.from("gallery").select("url,caption,sort_order,created_at").order("sort_order").order("created_at");
+      const pW = sb.from("wishes").select("name,message,created_at").order("created_at", { ascending: false }).limit(200);
+      const s = await pS;
       if (s.error) console.warn(s.error);
       data = s.data?.data || {};
+      renderCover(merge(window.WEDDING_DEFAULTS, data));
+      const [g, w] = await Promise.all([pG, pW]);
       gallery = g.data || [];
       wishes = w.data || [];
     } else {
@@ -71,14 +73,9 @@
     return { s: merge(window.WEDDING_DEFAULTS, data), gallery, wishes };
   }
 
-  // ---------- Hiển thị ----------
-  function render(state) {
-    const { s, gallery, wishes } = state;
+  // ---------- Bìa thiệp (vẽ sớm nhất có thể + nhớ lại cho lần mở sau) ----------
+  function renderCover(s) {
     const wDate = toDate(s.weddingDate);
-    const names = `${s.couple.groomName} & ${s.couple.brideName}`;
-    document.title = `${names} · Thiệp cưới`;
-
-    // Bìa
     const guest = new URLSearchParams(location.search).get("to");
     const cv = s.cover || {};
     $("#coverTo").textContent = cv.line1 || "";
@@ -87,7 +84,28 @@
     $("#coverTo").hidden = !cv.line1; $("#coverLine2").hidden = !cv.line2;
     $("#coverNames").innerHTML = `<span>${esc(s.couple.groomName)}</span><span class="amp">&amp;</span><span>${esc(s.couple.brideName)}</span>`;
     $("#coverDate").textContent = wDate ? fmtDate(wDate) : "";
-    setSticker($("#coverSticker"), s.decor.coverSticker);
+    const st = $("#coverSticker"), su = safeUrl(s.decor.coverSticker);
+    if (su && st.getAttribute("src") !== su) st.src = su;
+    st.hidden = !su;
+    if (sb) {
+      try {
+        localStorage.setItem("wedding_cover_v1", JSON.stringify({
+          l1: cv.line1 || "", l2: cv.line2 || "", gd: cv.guestDefault || "", g: s.couple.groomName, b: s.couple.brideName,
+          date: wDate ? fmtDate(wDate) : "", sticker: su,
+        }));
+      } catch {}
+    }
+  }
+
+  // ---------- Hiển thị ----------
+  function render(state) {
+    const { s, gallery, wishes } = state;
+    const wDate = toDate(s.weddingDate);
+    const names = `${s.couple.groomName} & ${s.couple.brideName}`;
+    document.title = `${names} · Thiệp cưới`;
+
+    // Bìa
+    renderCover(s);
 
     // Hero
     const hero = safeUrl(s.hero.image);
