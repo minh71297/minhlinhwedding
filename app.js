@@ -508,7 +508,7 @@
     // Tự trượt chậm; dừng khi rê chuột, khi đang vuốt, khi không nhìn thấy album
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const tick = () => { if (!paused && inView && !document.hidden && !reduce.matches && !$("#lightbox").open && n > vis) next(); };
-    const restart = () => { clearInterval(timer); timer = setInterval(tick, 2000); };
+    const restart = () => { clearInterval(timer); timer = setInterval(tick, 4000); };
     view.parentElement.addEventListener("mouseenter", () => (paused = true));
     view.parentElement.addEventListener("mouseleave", () => (paused = false));
     new IntersectionObserver((es) => es.forEach((e) => (inView = e.isIntersecting)), { threshold: 0.3 }).observe(view);
@@ -541,10 +541,22 @@
       $("#lbImg").src = photos[idx].url; $("#lbImg").alt = photos[idx].caption || "";
       $("#lbCap").textContent = photos[idx].caption || "";
     };
+    const open = (i) => { show(i); dlg.showModal(); };
     $("#album").onclick = (e) => {
       const b = e.target.closest("button[data-i]"); if (!b) return;
-      show(+b.dataset.i); dlg.showModal();
+      open(+b.dataset.i);
     };
+    // Xem toàn bộ ảnh: lưới tất cả ảnh, chạm ảnh nào mở ảnh đó
+    const all = $("#allPhotos"), grid = $("#apGrid");
+    $("#carAll").hidden = photos.length < 2;
+    $("#apTitle").textContent = `Album ảnh (${photos.length})`;
+    $("#carAll").onclick = () => {
+      if (!grid.childElementCount) grid.innerHTML = photos.map((g, i) => `<button type="button" data-i="${i}" aria-label="Xem ảnh ${i + 1}"><img src="${esc(safeUrl(g.url))}" alt="${esc(g.caption || "")}" loading="lazy" decoding="async"></button>`).join("");
+      all.showModal(); all.scrollTop = 0;
+    };
+    grid.onclick = (e) => { const b = e.target.closest("button[data-i]"); if (b) open(+b.dataset.i); };
+    all.querySelector(".ap-close").onclick = () => all.close();
+    all.addEventListener("click", (e) => { if (e.target === all) all.close(); });
     dlg.querySelector(".lb-close").onclick = () => dlg.close();
     dlg.querySelector(".lb-prev").onclick = () => show(idx - 1);
     dlg.querySelector(".lb-next").onclick = () => show(idx + 1);

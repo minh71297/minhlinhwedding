@@ -124,7 +124,10 @@
         <div class="car-viewport" id="carView"><div class="car-track" id="carTrack"></div></div>
         <button type="button" class="car-nav car-prev" id="carPrev" aria-label="Ảnh trước">‹</button>
         <button type="button" class="car-nav car-next" id="carNext" aria-label="Ảnh sau">›</button>
-        <div class="car-foot"><span class="car-count" id="carCount" aria-live="polite"></span><div class="car-bar"><span id="carBar"></span></div></div>
+        <div class="car-foot">
+          <span class="car-count" id="carCount" aria-live="polite"></span><div class="car-bar"><span id="carBar"></span></div>
+          <button type="button" class="btn btn-ghost btn-small car-all" id="carAll" hidden>Xem tất cả</button>
+        </div>
       </div>
     </section>
 
@@ -244,6 +247,11 @@
   </div>
   <button type="button" class="to-top" id="toTop" aria-label="Lên đầu trang" title="Lên đầu trang"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V6M6 11l6-6 6 6"/></svg></button>
   <audio id="bgm" preload="none"></audio>
+
+  <dialog id="allPhotos" class="all-photos" aria-labelledby="apTitle">
+    <div class="ap-head"><h3 id="apTitle">Album ảnh</h3><button type="button" class="ap-close" aria-label="Đóng">×</button></div>
+    <div class="ap-grid" id="apGrid"></div>
+  </dialog>
 
   <dialog id="lightbox" class="lightbox">
     <button class="lb-close" type="button" aria-label="Đóng">×</button>
