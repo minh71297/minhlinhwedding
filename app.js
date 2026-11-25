@@ -508,7 +508,7 @@
     // Tự trượt chậm; dừng khi rê chuột, khi đang vuốt, khi không nhìn thấy album
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const tick = () => { if (!paused && inView && !document.hidden && !reduce.matches && !$("#lightbox").open && n > vis) next(); };
-    const restart = () => { clearInterval(timer); timer = setInterval(tick, 4000); };
+    const restart = () => { clearInterval(timer); timer = setInterval(tick, 2000); };
     view.parentElement.addEventListener("mouseenter", () => (paused = true));
     view.parentElement.addEventListener("mouseleave", () => (paused = false));
     new IntersectionObserver((es) => es.forEach((e) => (inView = e.isIntersecting)), { threshold: 0.3 }).observe(view);
