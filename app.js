@@ -210,6 +210,7 @@
       ? photos.map((g, i) => `<button type="button" data-i="${i}" aria-label="Xem ảnh ${i + 1}"><img src="${esc(safeUrl(g.url))}" alt="${esc(g.caption || "")}" loading="lazy"></button>`).join("")
       : `<p class="empty">Ảnh cưới sẽ sớm được cập nhật.</p>`;
     setupLightbox(photos);
+    setupAlbumMore(photos.length);
 
     // RSVP
     hideSection("rsvp-section", s.rsvp?.enabled === false);
@@ -461,6 +462,30 @@
         + `<span>Còn <b>${d}</b> ngày <b>${pad(h)}</b>:<b>${pad(m)}</b>:<b>${pad(sec)}</b></span>`;
     };
     tick(); clearInterval(cdTimer); cdTimer = setInterval(tick, 1000);
+  }
+
+  // Album: hiện trước một ít, bấm "Xem thêm" để hiện tiếp (ảnh ẩn chưa tải nên trang nhẹ)
+  function setupAlbumMore(total) {
+    const btn = $("#albumMore"), sec = document.getElementById("album-section");
+    const batch = () => (window.matchMedia("(min-width: 1024px)").matches ? 10 : 4);
+    let shown = batch();
+    const apply = (from) => {
+      [...$("#album").querySelectorAll("button[data-i]")].forEach((b, i) => {
+        b.hidden = i >= shown;
+        if (from !== undefined && i >= from && i < shown) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
+      });
+      const left = total - shown;
+      btn.hidden = total <= batch();
+      btn.textContent = left > 0 ? `Xem thêm ảnh (${left})` : "Thu gọn album";
+      btn.setAttribute("aria-expanded", left <= 0);
+    };
+    btn.onclick = () => {
+      if (shown >= total) {
+        shown = batch(); apply();
+        if (pager.on) sec.scrollTop = 0; else sec.scrollIntoView({ behavior: "smooth" });
+      } else { const from = shown; shown = Math.min(total, shown + batch()); apply(from); }
+    };
+    apply();
   }
 
   function setupLightbox(photos) {

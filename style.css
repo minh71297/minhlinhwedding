@@ -803,3 +803,10 @@ body:not(.opened) .to-top{display:none}
   .event-img{aspect-ratio:21/9}
   .event-actions{margin-top:12px}
 }
+
+/* Album: nút Xem thêm */
+.album button[hidden]{display:none}
+.album-more{display:flex;justify-content:center;margin-top:18px}
+.album-more .btn[hidden]{display:none}
+.album button.pop{animation:albumPop .4s ease both}
+@keyframes albumPop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
